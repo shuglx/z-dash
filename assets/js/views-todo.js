@@ -72,9 +72,10 @@ const todoView = {
   card(t) {
     const { tag, title } = this.parseTag(t.title);
     const pri = { P0: 'hi', P1: 'mid', P2: 'low' }[t.priority] || 'low';
+    const pcls = { P0: 'p0', P1: 'p1', P2: 'p2' }[t.priority] || 'p2';
     const m = this.moves[t.status] || {};
     return `
-      <div class="task ${t.status}" draggable="true" data-id="${t.id}">
+      <div class="task ${t.status} ${pcls}" draggable="true" data-id="${t.id}">
         <div class="t-row">
           <div class="t">${tag ? `<span class="tagx">[${ui.esc(tag)}]</span>` : ''}${ui.esc(title)}</div>
           ${t.status === 'done' ? '<button class="btn arch" data-act="arch" title="归档进历史">ARCHIVE</button>' : ''}

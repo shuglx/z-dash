@@ -22,12 +22,12 @@ const linksView = {
         <button class="btn warn" data-act="newgroup">+ NEW GROUP</button>
       </div>
       <div id="grpBox">
-        ${d.groups.map(g => this.grpHTML(g, d.items.filter(i => i.groupId === g.id))).join('')}
+        ${d.groups.map((g, gi) => this.grpHTML(g, d.items.filter(i => i.groupId === g.id), gi % 4)).join('')}
       </div>`;
     this.bind(el);
   },
 
-  grpHTML(g, items) {
+  grpHTML(g, items, ci = 0) {
     return `
       <div class="grp" data-gid="${g.id}">
         <div class="grp-h">
@@ -41,15 +41,15 @@ const linksView = {
         </div>
         ${g.collapsed ? '' : `
         <div class="links">
-          ${items.map(i => this.cardHTML(i)).join('')}
-          <div class="lk add" data-act="newlink" data-gid="${g.id}"><span>+ NEW LINK</span></div>
+          ${items.map(i => this.cardHTML(i, ci)).join('')}
+          <div class="lk add" data-c="${ci}" data-act="newlink" data-gid="${g.id}"><span>+ NEW LINK</span></div>
         </div>`}
       </div>`;
   },
 
-  cardHTML(i) {
+  cardHTML(i, ci = 0) {
     return `
-      <div class="lk" data-id="${i.id}">
+      <div class="lk" data-c="${ci}" data-id="${i.id}">
         <div class="ic">${ui.esc(ui.initials(i.title))}</div>
         <div class="txt">
           <div class="n">${ui.esc(i.title)}</div>
