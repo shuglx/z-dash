@@ -51,6 +51,25 @@ function toggleTheme() {
   document.getElementById('themeBtn').onclick = toggleTheme;
   document.getElementById('themeBtnM').onclick = toggleTheme;
 
+  // 桌宠开关（持久化, 默认开）
+  const syncPetBtn = () => {
+    const txt = pet.on ? '桌宠 ON' : '桌宠 OFF';
+    const b1 = document.getElementById('petBtn'), b2 = document.getElementById('petBtnM');
+    if (b1) b1.textContent = txt;
+    if (b2) b2.textContent = pet.on ? '桌宠' : '桌宠×';
+    b1 && b1.classList.toggle('ghost', !pet.on);
+  };
+  ['petBtn', 'petBtnM'].forEach(id => {
+    const b = document.getElementById(id);
+    if (b) b.onclick = () => {
+      pet.toggle();
+      localStorage.setItem('zdash:pet', pet.on ? '1' : '0');
+      syncPetBtn();
+    };
+  });
+  if (localStorage.getItem('zdash:pet') !== '0') pet.mount();
+  syncPetBtn();
+
   // 快捷键：N 新建任务（待办页 & 无弹层 & 非输入状态）
   document.addEventListener('keydown', e => {
     if (e.key !== 'n' && e.key !== 'N') return;

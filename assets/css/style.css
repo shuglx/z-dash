@@ -367,6 +367,16 @@ html[data-theme="light"] .m-h{background:linear-gradient(180deg,rgba(0,121,95,.0
   padding-bottom:env(safe-area-inset-bottom);
 }
 .mtab .mi{padding:8px 0 10px;text-align:center;color:var(--txt-dim);cursor:pointer;font-size:10px;letter-spacing:1px}
+
+/* ---------- 桌宠（移植自 dsh-pet） ---------- */
+/* 默认停在 DONE 面板右下角区域：右侧/底部留边，不贴屏幕边 */
+.pet-root{position:fixed;z-index:90;right:44px;bottom:64px;pointer-events:none;user-select:none}
+.pet-stage{position:relative;width:var(--pet-size,340px);height:calc(var(--pet-size,340px)*9/16);pointer-events:none}
+.pet-video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;opacity:0;transition:opacity .18s ease}
+.pet-video.is-front{opacity:1}
+.pet-hit{position:absolute;pointer-events:auto;z-index:1}
+.pet-hit.dragging{cursor:grabbing}
+@media (prefers-reduced-motion: reduce){.pet-video{transition:none}}
 .mtab .mi .ic2{display:block;font-size:15px;margin-bottom:2px;color:inherit}
 .mtab .mi.on{color:var(--cyan);text-shadow:var(--glowC)}
 
@@ -387,6 +397,7 @@ html[data-theme="light"] .m-h{background:linear-gradient(180deg,rgba(0,121,95,.0
   .lk .ic{width:42px;height:42px}
   .grp{margin-bottom:28px}
   .op{padding:3px 4px}
+  .pet-root{right:12px;bottom:104px;--pet-size:260px}
   .modal-mask{align-items:flex-end;padding:0}
   .modal{max-width:none;align-self:stretch}
 }

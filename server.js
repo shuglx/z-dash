@@ -27,6 +27,7 @@ const MIME = {
   '.jpg': 'image/jpeg',
   '.ico': 'image/x-icon',
   '.woff2': 'font/woff2',
+  '.webm': 'video/webm',
 };
 
 function parseApiKey(url) {
@@ -113,7 +114,7 @@ const server = http.createServer((req, res) => {
   }
 
   if (req.method === 'GET' || req.method === 'HEAD') {
-    return serveStatic(req, res, url.pathname);
+    return serveStatic(req, res, decodeURIComponent(url.pathname));
   }
 
   sendJson(res, 405, { error: 'method not allowed' });
