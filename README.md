@@ -43,13 +43,15 @@
 
 ### 启动（个人电脑日常用法）
 
-```bash
-cd z-dash
-./start.sh        # 启动后端 + 自动打开浏览器，Ctrl+C 停止
-./start.sh 8001   # 换端口
-```
+启动脚本统一在 `bin/` 目录，覆盖三大平台：
 
-macOS 也可以直接**双击 `start.command`**（会用终端打开并启动）。Node 需要 18.20.8+（零第三方依赖）。
+| 平台 | 命令 | 说明 |
+|---|---|---|
+| macOS / Linux | `./bin/start.sh` | 启动后端 + 自动打开浏览器，Ctrl+C 停止；换端口 `./bin/start.sh 8001` |
+| macOS 双击 | 双击 `bin/start.command` | 用 Terminal 打开并启动 |
+| Windows | `bin\start.bat`（双击或命令行） | 服务跑在独立最小化窗口，关闭该窗口即停止 |
+
+Node 需要 18.20.8+（零第三方依赖）。
 
 手动启动方式：`node server.js 8000`，然后打开 `http://localhost:8000`。直接双击 `index.html` 则降级为种子只读模式。
 
@@ -82,8 +84,10 @@ macOS 也可以直接**双击 `start.command`**（会用终端打开并启动）
 z-dash/
 ├── index.html               # 入口
 ├── server.js                # 极简后端：静态服务 + JSON 读写 API（Node 18+）
-├── start.sh                 # 一键启动脚本（终端）
-├── start.command            # macOS 双击启动入口
+├── bin/                     # 启动脚本（三平台）
+│   ├── start.sh             #   macOS / Linux
+│   ├── start.command        #   macOS 双击入口
+│   └── start.bat            #   Windows
 ├── assets/
 │   ├── css/style.css        # 主题变量 + 全部样式
 │   ├── pet/                 # 桌宠透明动画（51 个 webm, ~35MB）

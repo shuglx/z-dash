@@ -51,10 +51,11 @@ const ui = {
     if (this._box) this._box.innerHTML = '';
   },
 
-  /* ---------- 表单弹层 ----------
-     fields: [{name,label,type('text'|'select'|'date'),options[[v,l]],value,required,placeholder}]
+  /* ---------- 弹层表单 ----------
+     fields: [{name,label,type('text'|'select'|'date'),options[[v,l]],value,required,placeholder,list}]
+     extraHTML: 表单后追加的任意 HTML（如 datalist）
      onSubmit(values) 返回 false 则不关闭 */
-  formModal({ title, fields, submit, onSubmit }) {
+  formModal({ title, fields, submit, extraHTML, onSubmit }) {
     const     fieldHTML = f => {
       if (f.type === 'select') {
         const opts = f.options.map(o =>
@@ -64,11 +65,14 @@ const ui = {
       if (f.type === 'textarea') {
         return `<div class="fld"><label>${this.esc(f.label)}</label><textarea class="ipt" name="${f.name}" rows="${f.rows || 3}" placeholder="${this.esc(f.placeholder || '')}" ${f.required ? 'required' : ''}>${f.value ? this.esc(f.value) : ''}</textarea></div>`;
       }
+      if (f.type === 'combo') {
+        return `<div class="fld combo"><label>${this.esc(f.label)}</label><input class="ipt" name="${f.name}" type="text" autocomplete="off" value="${f.value ? this.esc(f.value) : ''}" placeholder="${this.esc(f.placeholder || '')}" ${f.required ? 'required' : ''}><div class="combo-list" hidden></div></div>`;
+      }
       return `<div class="fld"><label>${this.esc(f.label)}</label><input class="ipt" name="${f.name}" type="${f.type || 'text'}" value="${f.value ? this.esc(f.value) : ''}" placeholder="${this.esc(f.placeholder || '')}" ${f.required ? 'required' : ''}></div>`;
     };
     this._open(`
       <div class="m-h">${this.esc(title)}</div>
-      <form class="m-b">${fields.map(fieldHTML).join('')}</form>
+      <form class="m-b">${fields.map(fieldHTML).join('')}${extraHTML || ''}</form>
       <div class="m-f">
         <button type="button" class="btn ghost" data-x>CANCEL</button>
         <button type="button" class="btn warn" data-ok>${this.esc(submit || 'COMMIT')}</button>
@@ -84,6 +88,49 @@ const ui = {
       const r = await onSubmit(v);
       if (r !== false) this.close();
     };
+    // combo 字段：自绘下拉（focus/input 过滤显示, 点击/回车选中, 风格与 select 一致）
+    fields.filter(f => f.type === 'combo').forEach(f => {
+      const inp = form.querySelector(`input[name="${f.name}"]`);
+      const list = inp.closest('.fld').querySelector('.combo-list');
+      let act = -1;
+      const render = () => {
+        const v = inp.value.trim().toLowerCase();
+        const items = (f.options || []).filter(o => !v || String(o).toLowerCase().includes(v));
+        act = -1;
+        if (!items.length) {
+          list.innerHTML = v ? '<div class="none">[ 无匹配项, 直接输入即新建 ]</div>' : '';
+          list.hidden = !v;
+          return;
+        }
+        list.innerHTML = items.map(o => `<div class="co">${this.esc(o)}</div>`).join('');
+        list.hidden = false;
+      };
+      inp.addEventListener('focus', render);
+      inp.addEventListener('input', render);
+      inp.addEventListener('keydown', e => {
+        if (list.hidden) return;
+        const cos = [...list.querySelectorAll('.co')];
+        if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && cos.length) {
+          e.preventDefault();
+          act = e.key === 'ArrowDown' ? Math.min(act + 1, cos.length - 1) : Math.max(act - 1, 0);
+          cos.forEach((el, i) => el.classList.toggle('act', i === act));
+          cos[act].scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'Enter' && act >= 0) {
+          e.preventDefault();
+          inp.value = cos[act].textContent;
+          list.hidden = true;
+        } else if (e.key === 'Escape') {
+          list.hidden = true;
+        }
+      });
+      inp.addEventListener('blur', () => setTimeout(() => { list.hidden = true; }, 120));
+      list.addEventListener('mousedown', e => {
+        e.preventDefault(); // 阻止 input blur, 保证点击项生效
+        const co = e.target.closest('.co');
+        if (co) { inp.value = co.textContent; list.hidden = true; inp.focus(); }
+      });
+    });
+
     // 延迟聚焦：快捷键触发的 keydown 尚未结束，立即 focus 会把该字符吞进输入框（如 N 新建时标题多出 n）
     setTimeout(() => {
       const first = form.querySelector('input:not([type=date]),select');

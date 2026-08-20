@@ -248,13 +248,15 @@ const todoView = {
 
   editModal(t) {
     const isNew = !t;
+    // 已有项目去重列表（datalist：可下拉选已有, 也可自由输入新项目）
+    const projects = [...new Set(store.data.todos.items.map(x => (x.project || '').trim()).filter(Boolean))].sort();
     ui.formModal({
       title: isNew ? 'NEW TASK' : 'EDIT TASK',
       fields: [
         { name: 'title', label: '标题（[TAG] 前缀会被高亮）', required: true, value: t ? t.title : '', placeholder: '例如 [BUG] 修复登录超时' },
         { name: 'status', label: '状态', type: 'select', value: t ? t.status : 'todo', options: [['todo', '未启动'], ['doing', '进行中'], ['done', '已完成']] },
         { name: 'priority', label: '优先级', type: 'select', value: t ? t.priority : 'P2', options: [['P0', 'P0 紧急'], ['P1', 'P1 重要'], ['P2', 'P2 普通']] },
-        { name: 'project', label: '项目（可选）', value: t ? (t.project || '') : '', placeholder: 'infra / gateway / self ...' },
+        { name: 'project', label: '项目（可选，输入或选择已有）', type: 'combo', options: projects, value: t ? (t.project || '') : '', placeholder: 'infra / gateway / self ...' },
         { name: 'desc', label: '详情（可选）', type: 'textarea', rows: 6, value: t ? (t.desc || '') : '', placeholder: '补充说明 / 验收标准 / 备注 ...' },
         { name: 'dueDate', label: '截止日期（可选）', type: 'date', value: t ? (t.dueDate || '') : '' }
       ],
