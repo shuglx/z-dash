@@ -1,7 +1,7 @@
 /* ============================================================
    Z-DASH 待办事项 — 三栏看板
    状态: todo(未启动) / doing(进行中) / done(已完成)
-   交互: PC 拖拽切栏；移动端卡片箭头切状态；done 卡可归档
+   交互: PC 拖拽切栏；移动端卡片箭头切状态；done 卡右上角 ARCHIVE 按钮归档
    分组: 列内按 project 自动归组, 未填项目归入 UNGROUPED
    箭头: todo 仅 → ; doing 有 ←→ ; done 仅 ←
    ============================================================ */
@@ -41,7 +41,7 @@ const todoView = {
           </div>`;
         }).join('')}
       </div>
-      <p class="hint">// PC 端拖动卡片切状态 · 卡片 [→]/[←] 快捷切状态 · DONE 栏 [arch] 归档进历史 · 快捷键 N 新建</p>`;
+      <p class="hint">// PC 端拖动卡片切状态 · 卡片 [→]/[←] 快捷切状态 · done 卡右上角 ARCHIVE 归档 · 快捷键 N 新建</p>`;
     this.bind(el);
   },
 
@@ -75,7 +75,10 @@ const todoView = {
     const m = this.moves[t.status] || {};
     return `
       <div class="task ${t.status}" draggable="true" data-id="${t.id}">
-        <div class="t">${tag ? `<span class="tagx">[${ui.esc(tag)}]</span>` : ''}${ui.esc(title)}</div>
+        <div class="t-row">
+          <div class="t">${tag ? `<span class="tagx">[${ui.esc(tag)}]</span>` : ''}${ui.esc(title)}</div>
+          ${t.status === 'done' ? '<button class="btn arch" data-act="arch" title="归档进历史">ARCHIVE</button>' : ''}
+        </div>
         ${t.desc ? `<div class="desc">${ui.esc(t.desc)}</div>` : ''}
         <div class="meta">
           <span class="pri ${pri}">${ui.esc(t.priority || 'P2')}</span>
@@ -85,7 +88,6 @@ const todoView = {
             ${m.back ? `<span class="mv op" data-mv="${m.back}" title="移到 ${m.back}">←</span>` : ''}
             ${m.to ? `<span class="mv op" data-mv="${m.to}" title="移到 ${m.to}">→</span>` : ''}
             <span class="op" data-act="edit" title="编辑">[edit]</span>
-            ${t.status === 'done' ? '<span class="op" data-act="arch" title="归档">[arch]</span>' : ''}
             <span class="op danger" data-act="del" title="删除">[del]</span>
           </span>
         </div>
@@ -101,6 +103,13 @@ const todoView = {
 
     // 卡片操作（事件委托）
     el.onclick = async e => {
+      // done 卡右上角 ARCHIVE 按钮
+      const archBtn = e.target.closest('button[data-act="arch"]');
+      if (archBtn) {
+        const t = store.data.todos.items.find(x => x.id === archBtn.closest('.task').dataset.id);
+        if (t) this.archive(t);
+        return;
+      }
       const mvEl = e.target.closest('[data-mv]');
       const op = e.target.closest('.op');
       const card = (mvEl || op) && (mvEl || op).closest('.task');
@@ -113,7 +122,6 @@ const todoView = {
 
       const act = op.dataset.act;
       if (act === 'edit') this.editModal(t);
-      else if (act === 'arch') this.archive(t);
       else if (act === 'del') {
         if (await ui.confirm('删除任务「' + t.title + '」？')) {
           store.data.todos.items = store.data.todos.items.filter(x => x.id !== id);
@@ -218,6 +226,7 @@ const todoView = {
     this.render();
   },
 
+  /* 归档单条 done 任务进历史 */
   async archive(t) {
     store.data.todos.items = store.data.todos.items.filter(x => x.id !== t.id);
     store.data.archive.items.unshift({
@@ -245,7 +254,7 @@ const todoView = {
         { name: 'status', label: '状态', type: 'select', value: t ? t.status : 'todo', options: [['todo', '未启动'], ['doing', '进行中'], ['done', '已完成']] },
         { name: 'priority', label: '优先级', type: 'select', value: t ? t.priority : 'P2', options: [['P0', 'P0 紧急'], ['P1', 'P1 重要'], ['P2', 'P2 普通']] },
         { name: 'project', label: '项目（可选）', value: t ? (t.project || '') : '', placeholder: 'infra / gateway / self ...' },
-        { name: 'desc', label: '详情（可选）', type: 'textarea', rows: 3, value: t ? (t.desc || '') : '', placeholder: '补充说明 / 验收标准 / 备注 ...' },
+        { name: 'desc', label: '详情（可选）', type: 'textarea', rows: 6, value: t ? (t.desc || '') : '', placeholder: '补充说明 / 验收标准 / 备注 ...' },
         { name: 'dueDate', label: '截止日期（可选）', type: 'date', value: t ? (t.dueDate || '') : '' }
       ],
       submit: 'COMMIT',

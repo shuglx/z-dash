@@ -75,7 +75,6 @@ const ui = {
       </div>`);
     const form = this._box.querySelector('form');
     this._box.querySelector('[data-x]').onclick = () => this.close();
-    this._mask.onclick = e => { if (e.target === this._mask) this.close(); };
     this._box.querySelector('[data-ok]').onclick = async () => {
       const v = {};
       new FormData(form).forEach((val, k) => { v[k] = String(val).trim(); });
@@ -101,7 +100,6 @@ const ui = {
         </div>`);
       this._box.querySelector('[data-x]').onclick = () => { this.close(); res(false); };
       this._box.querySelector('[data-y]').onclick = () => { this.close(); res(true); };
-      this._mask.onclick = e => { if (e.target === this._mask) { this.close(); res(false); } };
     });
   },
 
@@ -118,6 +116,5 @@ const ui = {
       <div class="m-b view">${body}</div>
       <div class="m-f"><button type="button" class="btn ghost" data-x>CLOSE</button></div>`);
     this._box.querySelector('[data-x]').onclick = () => this.close();
-    this._mask.onclick = e => { if (e.target === this._mask) this.close(); };
   }
 };

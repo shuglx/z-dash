@@ -6,6 +6,15 @@ const linksView = {
   render() {
     const el = document.getElementById('view-links');
     const d = store.data.links;
+    // 迁移历史未分组链接：自动归入「默认」分组（每个链接必须属于某个分组）
+    const orphans = d.items.filter(i => !d.groups.some(g => g.id === i.groupId));
+    if (orphans.length) {
+      let def = d.groups.find(g => g.name === '默认');
+      if (!def) { def = { id: ui.uid('g'), name: '默认', collapsed: false }; d.groups.push(def); }
+      orphans.forEach(i => { i.groupId = def.id; });
+      ui.toast(`已将 ${orphans.length} 条未分组链接归入「默认」`, 'warn');
+      store.save('links');
+    }
     el.innerHTML = `
       <div class="topbar">
         <div class="crumb">SYS://<b>LINKS</b> &gt; BOOKMARKS · ${d.items.length} LINKS</div>
@@ -14,29 +23,26 @@ const linksView = {
       </div>
       <div id="grpBox">
         ${d.groups.map(g => this.grpHTML(g, d.items.filter(i => i.groupId === g.id))).join('')}
-        ${this.grpHTML({ id: null, name: 'UNGROUPED', collapsed: false },
-          d.items.filter(i => !i.groupId || !d.groups.some(g => g.id === i.groupId)))}
       </div>`;
     this.bind(el);
   },
 
   grpHTML(g, items) {
-    const isUng = g.id === null;
     return `
-      <div class="grp" data-gid="${g.id ?? ''}">
+      <div class="grp" data-gid="${g.id}">
         <div class="grp-h">
           <span class="arrow">${g.collapsed ? '[+]' : '[-]'}</span>
           <span class="gname">${ui.esc(g.name)}</span>
           <span class="cnt">// ${items.length} LINKS</span>
           <span class="gops">
-            ${!isUng ? '<span class="op" data-act="rename" title="重命名分组">[rename]</span>' : ''}
-            ${!isUng ? `<span class="op danger" data-act="delgroup" title="删除分组（需先清空）">[del]</span>` : ''}
+            <span class="op" data-act="rename" title="重命名分组">[rename]</span>
+            <span class="op danger" data-act="delgroup" title="删除分组（需先清空）">[del]</span>
           </span>
         </div>
         ${g.collapsed ? '' : `
         <div class="links">
           ${items.map(i => this.cardHTML(i)).join('')}
-          <div class="lk add" data-act="newlink" data-gid="${g.id ?? ''}"><span>+ NEW LINK</span></div>
+          <div class="lk add" data-act="newlink" data-gid="${g.id}"><span>+ NEW LINK</span></div>
         </div>`}
       </div>`;
   },
@@ -57,9 +63,7 @@ const linksView = {
   },
 
   groupOptions(cur) {
-    const opts = store.data.links.groups.map(g => [g.id, g.name]);
-    opts.push(['', 'UNGROUPED']);
-    return opts;
+    return store.data.links.groups.map(g => [g.id, g.name]);
   },
 
   bind(el) {
@@ -81,7 +85,7 @@ const linksView = {
           const g = store.data.links.groups.find(x => x.id === gid);
           if (!g) return;
           const n = store.data.links.items.filter(i => i.groupId === gid).length;
-          if (n > 0) return ui.toast(`组内还有 ${n} 个链接，先移出或删除`, 'warn');
+          if (n > 0) return ui.toast(`组内还有 ${n} 个链接，先移至其他分组或删除`, 'warn');
           if (await ui.confirm('删除分组「' + g.name + '」？')) {
             store.data.links.groups = store.data.links.groups.filter(x => x.id !== gid);
             await store.save('links');
@@ -116,7 +120,6 @@ const linksView = {
       const head = e.target.closest('.grp-h');
       if (head) {
         const gid = head.closest('.grp').dataset.gid;
-        if (!gid) return; // UNGROUPED 不可折叠
         const g = store.data.links.groups.find(x => x.id === gid);
         if (g) {
           g.collapsed = !g.collapsed;
@@ -149,26 +152,30 @@ const linksView = {
   },
 
   linkModal(it, gid) {
+    if (!store.data.links.groups.length) {
+      ui.toast('请先创建一个分组', 'warn');
+      return this.groupModal();
+    }
     ui.formModal({
       title: it ? 'EDIT LINK' : 'NEW LINK',
       fields: [
         { name: 'title', label: '名称', required: true, value: it ? it.title : '', placeholder: 'GitHub' },
         { name: 'url', label: 'URL', required: true, value: it ? it.url : '', placeholder: 'https://...' },
-        { name: 'groupId', label: '所属分组', type: 'select', value: it ? (it.groupId || '') : (gid || ''), options: this.groupOptions() }
+        { name: 'groupId', label: '所属分组', type: 'select', required: true, value: it ? it.groupId : (gid || store.data.links.groups[0].id), options: this.groupOptions() }
       ],
       submit: 'COMMIT',
       onSubmit: async v => {
-        if (!/^https?:\/\//i.test(v.url) && !/^file:\/\//i.test(v.url)) {
-          ui.toast('URL 需以 http(s):// 开头', 'warn');
+        if (!/^[a-z][a-z0-9+.-]*:/i.test(v.url)) {
+          ui.toast('URL 需以协议开头（如 https://、smb://、ssh://、mailto:）', 'warn');
           return false;
         }
         if (it) {
-          Object.assign(it, { title: v.title, url: v.url, groupId: v.groupId || null });
+          Object.assign(it, { title: v.title, url: v.url, groupId: v.groupId });
           ui.toast('LINK UPDATED');
         } else {
           store.data.links.items.unshift({
             id: ui.uid('l'), title: v.title, url: v.url,
-            groupId: v.groupId || null, createdAt: ui.nowISO()
+            groupId: v.groupId, createdAt: ui.nowISO()
           });
           ui.toast('LINK CREATED');
         }

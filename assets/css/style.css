@@ -199,6 +199,10 @@ html[data-theme="light"] input[type="date"].ipt{color-scheme:light}
 .task:hover{border-color:var(--line-hi);transform:translateY(-1px)}
 .task:active{cursor:grabbing}
 .task .t{color:var(--txt);font-size:13px;margin-bottom:6px;word-break:break-all}
+.task .t-row{display:flex;align-items:flex-start;gap:8px}
+.task .t-row .t{flex:1;min-width:0}
+.task .btn.arch{flex:none;color:var(--txt-dim);border-color:var(--line-hi);padding:3px 9px;font-size:10px;margin-top:1px;cursor:pointer}
+.task .btn.arch:hover{background:var(--line-hi);color:var(--txt);box-shadow:none}
 .task .desc{color:var(--txt-dim);font-size:11px;line-height:1.5;margin-bottom:8px;padding:6px 8px;
   border-left:2px solid var(--line-hi);background:var(--bg-0);white-space:pre-wrap;word-break:break-all}
 .task .tagx{color:var(--magenta);margin-right:6px;font-size:11px}
