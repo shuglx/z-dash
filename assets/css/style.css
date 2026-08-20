@@ -88,7 +88,7 @@ button{font-family:var(--mono)}
 
 /* ---------- 布局骨架 ---------- */
 .layout{display:flex;min-height:100vh;position:relative;z-index:1}
-.main{flex:1;min-width:0;padding:18px 22px 90px;max-width:1560px}
+.main{flex:1;min-width:0;padding:18px 22px 90px}
 
 /* ---------- PC 侧边栏 ---------- */
 .side{
