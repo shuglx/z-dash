@@ -23,7 +23,7 @@ const archiveView = {
         if (from && day < from) return false;
         if (to && day > to) return false;
         if (s.q) {
-          const hay = (it.title + ' ' + (it.project || '') + ' ' + day).toLowerCase();
+          const hay = (it.title + ' ' + (it.project || '') + ' ' + (it.desc || '') + ' ' + day).toLowerCase();
           if (!hay.includes(s.q.toLowerCase())) return false;
         }
         return true;
@@ -78,11 +78,11 @@ const archiveView = {
           <div class="panel-h">ARCHIVED_TASKS<span class="tag" id="arcRangeTag"></span></div>
           <div class="panel-b">
             <div class="search-bar">
-              <input type="text" class="ipt" id="arcQ" placeholder="grep 关键词... (标题 / 项目 / 日期)" value="${ui.esc(s.q)}">
+              <input type="text" class="ipt" id="arcQ" placeholder="grep 关键词... (标题 / 项目 / 详情 / 日期)" value="${ui.esc(s.q)}">
             </div>
             <div class="range-bar">
               <div class="rb-row">
-                ${this.QUICK.map(k => `<button class="btn mini rb${s.range === k && !s.customFrom && !s.customTo ? ' on' : ''}" data-range="${k}">${this.RANGES[k]}</button>`).join('')}
+                ${this.QUICK.map((k, i) => `<button class="btn mini rb rc${i}${s.range === k && !s.customFrom && !s.customTo ? ' on' : ''}" data-range="${k}">${this.RANGES[k]}</button>`).join('')}
                 ${s.dateFilter ? `<button class="btn mini" id="arcClearDate">清除 ${s.dateFilter}</button>` : ''}
               </div>
               <div class="rb-row">
@@ -264,11 +264,17 @@ const archiveView = {
     const { calY: y, calM: m } = this.state;
     title.textContent = y + '-' + String(m + 1).padStart(2, '0');
 
-    // 打点：按范围+关键词统计（不含日期点选，避免点选时其他日期标记消失）
+    // 打点：只按关键词统计，不联动时间范围/日期点选（日历始终保持完整打点）
     const marks = {};
-    this.scoped().forEach(it => {
+    const q = (this.state.q || '').toLowerCase();
+    store.data.archive.items.forEach(it => {
       const d = (it.doneAt || '').slice(0, 10);
-      if (d) marks[d] = (marks[d] || 0) + 1;
+      if (!d) return;
+      if (q) {
+        const hay = (it.title + ' ' + (it.project || '') + ' ' + (it.desc || '') + ' ' + d).toLowerCase();
+        if (!hay.includes(q)) return;
+      }
+      marks[d] = (marks[d] || 0) + 1;
     });
 
     // 周一为首列，算偏移

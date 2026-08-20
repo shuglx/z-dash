@@ -41,7 +41,8 @@
       "project": "dev",
       "dueDate": "2026-08-30",
       "createdAt": "2026-08-15T10:05:00",
-      "doneAt": "2026-08-20T10:44:58.804Z"
+      "doneAt": "2026-08-20T10:44:58.804Z",
+      "desc": "问题额问题we"
     },
     {
       "id": "t-0004",
@@ -51,7 +52,8 @@
       "project": "gateway",
       "dueDate": "2026-08-20",
       "createdAt": "2026-08-12T11:00:00",
-      "doneAt": null
+      "doneAt": null,
+      "desc": "日访问刚问过eqwg"
     },
     {
       "id": "t-0005",
@@ -76,7 +78,7 @@
     {
       "id": "t-0007",
       "title": "代码评审：PR #482 webhook 重试逻辑",
-      "status": "todo",
+      "status": "doing",
       "priority": "P2",
       "project": "gateway",
       "dueDate": "2026-08-06",

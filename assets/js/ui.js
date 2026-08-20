@@ -84,8 +84,11 @@ const ui = {
       const r = await onSubmit(v);
       if (r !== false) this.close();
     };
-    const first = form.querySelector('input:not([type=date]),select');
-    if (first) first.focus();
+    // 延迟聚焦：快捷键触发的 keydown 尚未结束，立即 focus 会把该字符吞进输入框（如 N 新建时标题多出 n）
+    setTimeout(() => {
+      const first = form.querySelector('input:not([type=date]),select');
+      if (first) first.focus();
+    }, 0);
   },
 
   /* ---------- 确认框 ---------- */
