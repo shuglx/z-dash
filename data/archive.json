@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "a-0001",
+      "title": "排查线上 Redis 连接泄漏",
+      "project": "infra",
+      "priority": "P0",
+      "doneAt": "2026-08-15",
+      "archivedAt": "2026-08-16T09:00:00"
+    },
+    {
+      "id": "a-0002",
+      "title": "写完季度 OKR 复盘",
+      "project": "self",
+      "priority": "P2",
+      "doneAt": "2026-08-12",
+      "archivedAt": "2026-08-13T20:11:00"
+    },
+    {
+      "id": "a-0003",
+      "title": "迁移日志采集到 OTel",
+      "project": "observ",
+      "priority": "P1",
+      "doneAt": "2026-08-08",
+      "archivedAt": "2026-08-09T10:40:00"
+    },
+    {
+      "id": "a-0004",
+      "title": "修复登录页 401 重定向死循环",
+      "project": "gateway",
+      "priority": "P0",
+      "doneAt": "2026-08-03",
+      "archivedAt": "2026-08-04T11:22:00"
+    },
+    {
+      "id": "a-0005",
+      "title": "整理内部 npm registry 白名单",
+      "project": "infra",
+      "priority": "P2",
+      "doneAt": "2026-07-28",
+      "archivedAt": "2026-07-29T09:15:00"
+    }
+  ]
+}

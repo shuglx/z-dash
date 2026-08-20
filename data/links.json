@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "groups": [
+    { "id": "g-01", "name": "DEV", "collapsed": false },
+    { "id": "g-02", "name": "INTERNAL", "collapsed": false }
+  ],
+  "items": [
+    {
+      "id": "l-0001",
+      "title": "GitHub",
+      "url": "https://github.com",
+      "groupId": "g-01",
+      "createdAt": "2026-08-01T10:00:00"
+    },
+    {
+      "id": "l-0002",
+      "title": "Stack Overflow",
+      "url": "https://stackoverflow.com",
+      "groupId": "g-01",
+      "createdAt": "2026-08-01T10:01:00"
+    },
+    {
+      "id": "l-0003",
+      "title": "MDN Web Docs",
+      "url": "https://developer.mozilla.org",
+      "groupId": "g-01",
+      "createdAt": "2026-08-01T10:02:00"
+    },
+    {
+      "id": "l-0004",
+      "title": "内部持续交付",
+      "url": "https://cd.internal.corp/pipeline",
+      "groupId": "g-02",
+      "createdAt": "2026-08-02T09:00:00"
+    },
+    {
+      "id": "l-0005",
+      "title": "Grafana 看板",
+      "url": "https://grafana.internal.corp/d/ops",
+      "groupId": "g-02",
+      "createdAt": "2026-08-02T09:05:00"
+    }
+  ]
+}
