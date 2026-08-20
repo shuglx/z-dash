@@ -15,7 +15,7 @@ const path = require('path');
 
 const ROOT = __dirname;
 const DATA_DIR = path.join(ROOT, 'data');
-const KEYS = new Set(['todos', 'archive', 'links']);
+const KEYS = new Set(['todos', 'archive', 'links', 'config']);
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',

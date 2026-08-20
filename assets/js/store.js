@@ -6,7 +6,7 @@
    后端不可达时(如 file:// 直开)降级到内置种子数据(只读)
    ============================================================ */
 const store = {
-  KEYS: ['todos', 'archive', 'links'],
+  KEYS: ['todos', 'archive', 'links', 'config'],
   mode: 'seed',         // 'server' | 'seed'
   data: {},
 

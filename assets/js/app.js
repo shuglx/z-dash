@@ -31,16 +31,30 @@ function updateFsStatus() {
 }
 
 function toggleTheme() {
-  const cur = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
-  const next = cur === 'light' ? 'dark' : 'light';
+  const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
   document.documentElement.dataset.theme = next;
-  localStorage.setItem('zdash:theme', next);
+  store.data.config.theme = next;
+  store.save('config');
+}
+
+/* 从 config 应用主题 / 桌宠（config 来自 data/config.json, 暗色默认） */
+function syncPetBtn() {
+  const txt = pet.on ? '桌宠 ON' : '桌宠 OFF';
+  const b1 = document.getElementById('petBtn'), b2 = document.getElementById('petBtnM');
+  if (b1) b1.textContent = txt;
+  if (b2) b2.textContent = pet.on ? '桌宠' : '桌宠×';
+  b1 && b1.classList.toggle('ghost', !pet.on);
+}
+
+function applyConfig() {
+  const cfg = store.data.config;
+  document.documentElement.dataset.theme = cfg.theme === 'light' ? 'light' : 'dark';
+  if (cfg.pet !== false) pet.mount();
+  syncPetBtn();
 }
 
 (function init() {
-  // 主题（暗色默认）
-  document.documentElement.dataset.theme = localStorage.getItem('zdash:theme') || 'dark';
-
+  // 主题：CSS :root 即暗色（无标记时天然暗色渲染）, 数据就绪后由 config 校正
   // 导航
   document.querySelectorAll('.nav-item, .mi').forEach(el => {
     el.onclick = () => { location.hash = '/' + el.dataset.tab; };
@@ -51,24 +65,16 @@ function toggleTheme() {
   document.getElementById('themeBtn').onclick = toggleTheme;
   document.getElementById('themeBtnM').onclick = toggleTheme;
 
-  // 桌宠开关（持久化, 默认开）
-  const syncPetBtn = () => {
-    const txt = pet.on ? '桌宠 ON' : '桌宠 OFF';
-    const b1 = document.getElementById('petBtn'), b2 = document.getElementById('petBtnM');
-    if (b1) b1.textContent = txt;
-    if (b2) b2.textContent = pet.on ? '桌宠' : '桌宠×';
-    b1 && b1.classList.toggle('ghost', !pet.on);
-  };
+  // 桌宠开关按钮（状态读写 config, applyConfig 里统一初始化）
   ['petBtn', 'petBtnM'].forEach(id => {
     const b = document.getElementById(id);
     if (b) b.onclick = () => {
       pet.toggle();
-      localStorage.setItem('zdash:pet', pet.on ? '1' : '0');
+      store.data.config.pet = pet.on;
+      store.save('config');
       syncPetBtn();
     };
   });
-  if (localStorage.getItem('zdash:pet') !== '0') pet.mount();
-  syncPetBtn();
 
   // 快捷键：N 新建任务（待办页 & 无弹层 & 非输入状态）
   document.addEventListener('keydown', e => {
@@ -80,9 +86,10 @@ function toggleTheme() {
     if ((TABS.includes(h) ? h : 'todo') === 'todo') todoView.editModal(null);
   });
 
-  // 启动：先载数据再渲染
+  // 启动：先载数据（含 config）再应用配置并渲染
   store.init().then(() => {
     updateFsStatus();
+    applyConfig();
     route();
   });
 })();

@@ -69,9 +69,9 @@ const archiveView = {
     s.page = 1; // 筛选变化重置到第一页
     el.innerHTML = `
       <div class="topbar">
-        <div class="crumb">SYS://<b>ARCHIVE</b> &gt; QUERY · <span id="arcCount"></span></div>
+        <div class="crumb"><span class="sys">SYS://</span><b>ARCHIVE</b> &gt; QUERY · <span id="arcCount"></span></div>
         <span class="sp"></span>
-        <button class="btn" data-act="exportReport" title="导出当前筛选结果为 Markdown"><span class="ic">↓</span> EXPORT REPORT</button>
+        <button class="btn gold" data-act="exportReport" title="导出当前筛选结果为 Markdown"><span class="ic">↓</span> EXPORT REPORT</button>
       </div>
       <div class="arch-grid">
         <div class="panel">
@@ -93,6 +93,7 @@ const archiveView = {
               </div>
             </div>
             <div id="arcList"></div>
+            <div id="arcPager"></div>
           </div>
         </div>
         <div class="cal">
@@ -129,15 +130,17 @@ const archiveView = {
       this.state.dateFilter = this.state.dateFilter === cell.dataset.day ? null : cell.dataset.day;
       this.render();
     };
-    // 分页 / 列表查看 / 删除（委托）
-    el.querySelector('#arcList').onclick = async e => {
+    // 分页（固定在面板底部, 不随列表滚动）
+    el.querySelector('#arcPager').onclick = e => {
       const pg = e.target.closest('[data-pg]');
-      if (pg) {
-        const pages = this.pageCount();
-        if (pg.dataset.pg === 'prev') this.state.page = Math.max(1, this.state.page - 1);
-        else if (pg.dataset.pg === 'next') this.state.page = Math.min(pages, this.state.page + 1);
-        return this.updateList();
-      }
+      if (!pg) return;
+      const pages = this.pageCount();
+      if (pg.dataset.pg === 'prev') this.state.page = Math.max(1, this.state.page - 1);
+      else if (pg.dataset.pg === 'next') this.state.page = Math.min(pages, this.state.page + 1);
+      this.updateList();
+    };
+    // 列表查看 / 删除（委托）
+    el.querySelector('#arcList').onclick = async e => {
       const op = e.target.closest('.op');
       if (!op) return;
       const it = store.data.archive.items.find(x => x.id === op.dataset.id);
@@ -223,6 +226,7 @@ const archiveView = {
     const cnt = el.querySelector('#arcCount');
     const tag = el.querySelector('#arcRangeTag');
     const box = el.querySelector('#arcList');
+    const pagerBox = el.querySelector('#arcPager');
     if (cnt) cnt.textContent = all.length + ' RECORDS';
     if (tag) {
       tag.textContent = this.rangeLabel() + (this.state.dateFilter ? ' · ' + this.state.dateFilter : '');
@@ -232,7 +236,7 @@ const archiveView = {
     this.state.page = Math.min(this.state.page, pages);
     const start = (this.state.page - 1) * this.PER_PAGE;
     const list = all.slice(start, start + this.PER_PAGE);
-    box.innerHTML = (list.length ? list.map(it => `
+    box.innerHTML = list.length ? list.map(it => `
       <div class="arc-item">
         <span class="d">${ui.fmtMD(it.doneAt)}</span>
         <span class="t"><s>${ui.esc(it.title)}</s></span>
@@ -242,13 +246,13 @@ const archiveView = {
           <span class="op danger" data-id="${it.id}" title="删除">[del]</span>
         </span>
       </div>`).join('')
-      : '<div class="arc-empty">[ NO MATCH ] 查询结果为空</div>') +
-      (pages > 1 ? `
+      : '<div class="arc-empty">[ NO MATCH ] 查询结果为空</div>';
+    if (pagerBox) pagerBox.innerHTML = pages > 1 ? `
       <div class="pager">
         <span class="op" data-pg="prev" title="上一页">[prev]</span>
         <span class="pg-info">${this.state.page} / ${pages}</span>
         <span class="op" data-pg="next" title="下一页">[next]</span>
-      </div>` : '');
+      </div>` : '';
   },
 
   updateCal() {

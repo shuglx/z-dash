@@ -24,9 +24,9 @@ const todoView = {
     const items = store.data.todos.items;
     el.innerHTML = `
       <div class="topbar">
-        <div class="crumb">SYS://<b>TODO</b> &gt; BOARD · ${items.length} TASKS</div>
+        <div class="crumb"><span class="sys">SYS://</span><b>TODO</b> &gt; BOARD · ${items.length} TASKS</div>
         <span class="sp"></span>
-        <button class="btn" data-act="exportWeek" title="导出本周工作为 Markdown"><span class="ic">↓</span> WEEK REPORT</button>
+        <button class="btn gold" data-act="exportWeek" title="导出本周工作为 Markdown"><span class="ic">↓</span> WEEK REPORT</button>
         <button class="btn warn" data-act="new">+ NEW TASK</button>
       </div>
       <div class="cols">
@@ -82,7 +82,7 @@ const todoView = {
         ${t.desc ? `<div class="desc">${ui.esc(t.desc)}</div>` : ''}
         <div class="meta">
           <span class="pri ${pri}">${ui.esc(t.priority || 'P2')}</span>
-          ${t.dueDate ? `<span class="date">${ui.fmtMD(t.dueDate)}</span>` : ''}
+          ${t.dueDate && t.status !== 'done' && t.dueDate <= ui.today() ? `<span class="date due" title="已到期/今日截止">${ui.fmtMD(t.dueDate)}</span>` : t.dueDate ? `<span class="date">${ui.fmtMD(t.dueDate)}</span>` : ''}
           ${t.project ? `<span class="proj">${ui.esc(t.project)}</span>` : ''}
           <span class="ops">
             ${m.back ? `<span class="mv op" data-mv="${m.back}" title="移到 ${m.back}">←</span>` : ''}

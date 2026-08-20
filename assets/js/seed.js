@@ -1,5 +1,10 @@
 /* Z-DASH 种子数据 — data/*.json 不可用时（file:// 直开 / 首次使用）的兜底数据源 */
 window.SEED = {
+  config: {
+    version: 1,
+    theme: "dark",
+    pet: true
+  },
   todos: {
     version: 1,
     items: [

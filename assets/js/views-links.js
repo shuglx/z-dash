@@ -17,7 +17,7 @@ const linksView = {
     }
     el.innerHTML = `
       <div class="topbar">
-        <div class="crumb">SYS://<b>LINKS</b> &gt; BOOKMARKS · ${d.items.length} LINKS</div>
+        <div class="crumb"><span class="sys">SYS://</span><b>LINKS</b> &gt; BOOKMARKS · ${d.items.length} LINKS</div>
         <span class="sp"></span>
         <button class="btn warn" data-act="newgroup">+ NEW GROUP</button>
       </div>
