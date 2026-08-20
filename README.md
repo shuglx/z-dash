@@ -1,6 +1,6 @@
 # Z-DASH
 
-程序员个人工作台。纯静态站点（原生 HTML/CSS/JS，零依赖、零框架、零 CDN），离线可用，支持 PC / 移动端响应式。赛博朋克 / 极客终端风。
+程序员个人工作台。极简后端 + 原生前端（HTML/CSS/JS，零依赖、零框架、零 CDN），所有修改实时写入 `data/` 目录的 JSON 文件，支持 PC / 移动端响应式。赛博朋克 / 极客终端风。
 
 ## 功能
 
@@ -26,23 +26,26 @@
 
 ## 数据存储
 
-数据源为 `data/` 目录下的本地 JSON 文件（`todos.json` / `archive.json` / `links.json`），三级读写策略：
+数据源为 `data/` 目录下的本地 JSON 文件（`todos.json` / `archive.json` / `links.json`）。由极简后端 `server.js` 负责读写：
 
 | 模式 | 条件 | 说明 |
 |------|------|------|
-| **FS-SYNC 实时读写**（推荐） | Chrome / Edge，通过 `http://localhost` 访问 | 点侧边栏「连接DATA」授权 `data/` 目录一次，之后所有增删改直接实时写回 JSON 文件；句柄存 IndexedDB，刷新免重复授权 |
-| CACHE 缓存 | 任意浏览器 | 读写 localStorage，点「导出JSON」下载后覆盖 `data/*.json` 落盘 |
-| 种子兜底 | `file://` 直开且无缓存 | 展示 `assets/js/seed.js` 内置数据 |
+| **LIVE 实时读写**（默认） | 通过 `server.js` 启动访问 | 所有增删改通过 `PUT /api/<key>` 实时写回 `data/*.json`（临时文件 + 原子改名，杜绝写坏） |
+| SEED 种子只读 | `file://` 直开 / 后端不可达 | 展示 `assets/js/seed.js` 内置数据，改动不落盘 |
 
-### 本地运行
+> 为什么需要后端：浏览器安全限制，纯前端 + 静态服务器无法直接写服务器的文件系统，必须由一个小进程承担写盘。
+
+### 启动（个人电脑日常用法）
 
 ```bash
 cd z-dash
-python3 -m http.server 8000
-# 浏览器打开 http://localhost:8000
+./start.sh        # 启动后端 + 自动打开浏览器，Ctrl+C 停止
+./start.sh 8001   # 换端口
 ```
 
-也可以直接双击 `index.html` 打开（降级为缓存 / 种子模式）。
+macOS 也可以直接**双击 `start.command`**（会用终端打开并启动）。Node 需要 18.20.8+（零第三方依赖）。
+
+手动启动方式：`node server.js 8000`，然后打开 `http://localhost:8000`。直接双击 `index.html` 则降级为种子只读模式。
 
 ## 主题
 
@@ -53,11 +56,14 @@ python3 -m http.server 8000
 ```
 z-dash/
 ├── index.html               # 入口
+├── server.js                # 极简后端：静态服务 + JSON 读写 API（Node 18+）
+├── start.sh                 # 一键启动脚本（终端）
+├── start.command            # macOS 双击启动入口
 ├── assets/
 │   ├── css/style.css        # 主题变量 + 全部样式
 │   └── js/
-│       ├── seed.js          # 兜底种子数据
-│       ├── store.js         # 数据层（FS Access / localStorage / 导出）
+│       ├── seed.js          # 种子只读数据
+│       ├── store.js         # 数据层（GET/PUT /api/<key>）
 │       ├── ui.js            # 弹层表单 / 确认框 / toast
 │       ├── views-todo.js    # 待办看板
 │       ├── views-archive.js # 历史归档
@@ -74,5 +80,5 @@ z-dash/
 - Hash 路由单页应用：`#/todo` `#/archive` `#/links`
 - 响应式断点 820px：PC 侧边栏 / 移动端底部 Tab 栏
 - HTML5 Drag & Drop 实现看板拖拽
-- File System Access API 实现浏览器实时读写本地文件
+- 后端 `server.js` 以 `GET/PUT /api/<key>` 实时读写 `data/*.json`（临时文件 + 原子改名写盘）
 - 系统等宽字体栈，无任何外部资源，完全离线

@@ -1,5 +1,5 @@
 /* ============================================================
-   Z-DASH app — 路由 / 导航 / 主题 / FS 连接 / 快捷键
+   Z-DASH app — 路由 / 导航 / 主题 / 后端状态 / 快捷键
    ============================================================ */
 const VIEWS = { todo: todoView, archive: archiveView, links: linksView };
 const TABS = ['todo', 'archive', 'links'];
@@ -21,11 +21,11 @@ function updateFsStatus() {
   const txt = document.getElementById('fsStatusTxt');
   const led = document.getElementById('fsLed');
   if (!txt) return;
-  if (store.mode === 'fs') {
-    txt.textContent = 'FS-SYNC · 实时读写 data/';
+  if (store.mode === 'server') {
+    txt.textContent = 'LIVE · 实时读写 data/';
     led.style.background = 'var(--cyan)';
   } else {
-    txt.textContent = 'CACHE · 缓存模式';
+    txt.textContent = 'SEED · 只读种子数据';
     led.style.background = 'var(--amber)';
   }
 }
@@ -35,14 +35,6 @@ function toggleTheme() {
   const next = cur === 'light' ? 'dark' : 'light';
   document.documentElement.dataset.theme = next;
   localStorage.setItem('zdash:theme', next);
-}
-
-async function onConnect() {
-  const ok = await store.connect();
-  if (ok) {
-    updateFsStatus();
-    route(); // 用文件数据重渲染
-  }
 }
 
 (function init() {
@@ -56,10 +48,6 @@ async function onConnect() {
   window.addEventListener('hashchange', route);
 
   // 侧边栏 / 移动端顶栏按钮
-  document.getElementById('fsConnect').onclick = onConnect;
-  document.getElementById('fsConnectM').onclick = onConnect;
-  document.getElementById('exportBtn').onclick = () => store.exportAll();
-  document.getElementById('exportBtnM').onclick = () => store.exportAll();
   document.getElementById('themeBtn').onclick = toggleTheme;
   document.getElementById('themeBtnM').onclick = toggleTheme;
 
