@@ -1,8 +1,16 @@
 {
   "version": 1,
   "groups": [
-    { "id": "g-01", "name": "DEV", "collapsed": false },
-    { "id": "g-02", "name": "INTERNAL", "collapsed": false }
+    {
+      "id": "g-01",
+      "name": "DEV",
+      "collapsed": false
+    },
+    {
+      "id": "g-02",
+      "name": "INTERNAL",
+      "collapsed": false
+    }
   ],
   "items": [
     {

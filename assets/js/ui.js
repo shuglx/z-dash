@@ -55,11 +55,14 @@ const ui = {
      fields: [{name,label,type('text'|'select'|'date'),options[[v,l]],value,required,placeholder}]
      onSubmit(values) 返回 false 则不关闭 */
   formModal({ title, fields, submit, onSubmit }) {
-    const fieldHTML = f => {
+    const     fieldHTML = f => {
       if (f.type === 'select') {
         const opts = f.options.map(o =>
           `<option value="${this.esc(o[0])}" ${String(o[0]) === String(f.value) ? 'selected' : ''}>${this.esc(o[1])}</option>`).join('');
         return `<div class="fld"><label>${this.esc(f.label)}</label><select class="ipt" name="${f.name}">${opts}</select></div>`;
+      }
+      if (f.type === 'textarea') {
+        return `<div class="fld"><label>${this.esc(f.label)}</label><textarea class="ipt" name="${f.name}" rows="${f.rows || 3}" placeholder="${this.esc(f.placeholder || '')}" ${f.required ? 'required' : ''}>${f.value ? this.esc(f.value) : ''}</textarea></div>`;
       }
       return `<div class="fld"><label>${this.esc(f.label)}</label><input class="ipt" name="${f.name}" type="${f.type || 'text'}" value="${f.value ? this.esc(f.value) : ''}" placeholder="${this.esc(f.placeholder || '')}" ${f.required ? 'required' : ''}></div>`;
     };
@@ -100,5 +103,21 @@ const ui = {
       this._box.querySelector('[data-y]').onclick = () => { this.close(); res(true); };
       this._mask.onclick = e => { if (e.target === this._mask) { this.close(); res(false); } };
     });
+  },
+
+  /* ---------- 只读详情弹窗 ----------
+     title: 标题; rows: [{k, v, raw?}] 键值行, v 为文本; v 可为空则不显示该行
+     raw: 详情多行文本(保留换行) */
+  view(title, rows) {
+    const body = rows.filter(r => r.v).map(r =>
+      `<div class="vrow"><span class="vk">${this.esc(r.k)}</span>` +
+      (r.raw ? `<span class="vv raw">${this.esc(r.v)}</span>` : `<span class="vv">${this.esc(r.v)}</span>`)
+      + `</div>`).join('');
+    this._open(`
+      <div class="m-h">${this.esc(title)}</div>
+      <div class="m-b view">${body}</div>
+      <div class="m-f"><button type="button" class="btn ghost" data-x>CLOSE</button></div>`);
+    this._box.querySelector('[data-x]').onclick = () => this.close();
+    this._mask.onclick = e => { if (e.target === this._mask) this.close(); };
   }
 };

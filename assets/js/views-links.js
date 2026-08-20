@@ -10,10 +10,7 @@ const linksView = {
       <div class="topbar">
         <div class="crumb">SYS://<b>LINKS</b> &gt; BOOKMARKS · ${d.items.length} LINKS</div>
         <span class="sp"></span>
-        <button class="btn warn" data-act="newgroup">+ 新分组</button>
-      </div>
-      <div class="links" style="margin-bottom:10px">
-        <div class="lk add gadd" data-act="newgroup2"><span>+ NEW GROUP</span></div>
+        <button class="btn warn" data-act="newgroup">+ NEW GROUP</button>
       </div>
       <div id="grpBox">
         ${d.groups.map(g => this.grpHTML(g, d.items.filter(i => i.groupId === g.id))).join('')}
@@ -32,8 +29,8 @@ const linksView = {
           <span class="gname">${ui.esc(g.name)}</span>
           <span class="cnt">// ${items.length} LINKS</span>
           <span class="gops">
-            ${!isUng ? '<span class="op" data-act="rename" title="重命名分组">rename</span>' : ''}
-            ${!isUng ? `<span class="op danger" data-act="delgroup" title="删除分组（需先清空）">del</span>` : ''}
+            ${!isUng ? '<span class="op" data-act="rename" title="重命名分组">[rename]</span>' : ''}
+            ${!isUng ? `<span class="op danger" data-act="delgroup" title="删除分组（需先清空）">[del]</span>` : ''}
           </span>
         </div>
         ${g.collapsed ? '' : `
@@ -53,8 +50,8 @@ const linksView = {
           <span class="u">${ui.esc(ui.host(i.url))}</span>
         </div>
         <div class="ops">
-          <span class="op" data-act="edit" data-id="${i.id}" title="编辑">edit</span>
-          <span class="op danger" data-act="del" data-id="${i.id}" title="删除">del</span>
+          <span class="op" data-act="edit" data-id="${i.id}" title="编辑">[edit]</span>
+          <span class="op danger" data-act="del" data-id="${i.id}" title="删除">[del]</span>
         </div>
       </div>`;
   },
@@ -71,7 +68,7 @@ const linksView = {
       const actEl = e.target.closest('[data-act]');
       if (actEl) {
         const act = actEl.dataset.act;
-        if (act === 'newgroup' || act === 'newgroup2') return this.groupModal();
+        if (act === 'newgroup') return this.groupModal();
         if (act === 'newlink') return this.linkModal(null, actEl.dataset.gid || null);
         if (act === 'rename') {
           const gid = actEl.closest('.grp').dataset.gid;
