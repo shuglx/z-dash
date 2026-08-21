@@ -48,7 +48,7 @@ const ui = {
   },
   close() {
     if (this._mask) this._mask.hidden = true;
-    if (this._box) this._box.innerHTML = '';
+    if (this._box) { this._box.innerHTML = ''; this._box.className = 'modal'; }
   },
 
   /* ---------- 弹层表单 ----------

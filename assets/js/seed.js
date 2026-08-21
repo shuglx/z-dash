@@ -27,6 +27,10 @@ window.SEED = {
       { id: "a-0005", title: "整理内部 npm registry 白名单", project: "infra", priority: "P2", createdAt: "2026-07-15T10:00:00", doneAt: "2026-07-28", archivedAt: "2026-07-29T09:15:00" }
     ]
   },
+  weekly: {
+    version: 1,
+    items: []
+  },
   links: {
     version: 1,
     groups: [

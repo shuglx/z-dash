@@ -26,7 +26,6 @@ const todoView = {
       <div class="topbar">
         <div class="crumb"><span class="sys">SYS://</span><b>TODO</b> &gt; BOARD · ${items.length} TASKS</div>
         <span class="sp"></span>
-        <button class="btn gold" data-act="exportWeek" title="导出本周工作为 Markdown"><span class="ic">↓</span> WEEK REPORT</button>
         <button class="btn warn" data-act="new">+ NEW TASK</button>
       </div>
       <div class="cols">
@@ -98,9 +97,6 @@ const todoView = {
   bind(el) {
     // 新任务
     el.querySelector('[data-act="new"]').onclick = () => this.editModal(null);
-    // 导出本周
-    const exBtn = el.querySelector('[data-act="exportWeek"]');
-    if (exBtn) exBtn.onclick = () => this.exportWeek();
 
     // 卡片操作（事件委托）
     el.onclick = async e => {
@@ -153,69 +149,6 @@ const todoView = {
         if (t && t.status !== col.dataset.col) this.setStatus(t, col.dataset.col, true);
       };
     });
-  },
-
-  /* 导出本周工作为 Markdown：待办/进行中全部 + 已完成（完成时间在本周） */
-  exportWeek() {
-    const items = store.data.todos.items;
-    const now = new Date();
-    const mon = new Date(now);
-    mon.setDate(now.getDate() - ((now.getDay() + 6) % 7)); // 本周一
-    const from = mon.toISOString().slice(0, 10);
-    const to = now.toISOString().slice(0, 10);
-
-    const inWeek = t => {
-      if (t.status !== 'done') return true;
-      const d = (t.doneAt || '').slice(0, 10);
-      return d >= from && d <= to;
-    };
-    const tasks = items.filter(inWeek);
-    const esc = s => String(s || '').replace(/[|*]/g, m => '\\' + m).replace(/\n/g, ' ').trim();
-
-    const renderGroup = list => {
-      const groups = new Map();
-      list.forEach(t => {
-        const k = (t.project || '').trim();
-        if (!groups.has(k)) groups.set(k, []);
-        groups.get(k).push(t);
-      });
-      const keys = [...groups.keys()].filter(k => k !== '').sort((a, b) => a.localeCompare(b));
-      const sorted = keys.concat(groups.has('') ? [''] : []);
-      return sorted.map(k => {
-        const arr = groups.get(k);
-        const head = k === '' ? '**未分组**' : `**${esc(k)}**`;
-        const lines = arr.map(t => {
-          const { tag, title } = this.parseTag(t.title);
-          const full = tag ? `[${tag}] ${title}` : title;
-          const p = t.priority || 'P2';
-          const due = t.dueDate ? `截止:${t.dueDate}` : '';
-          const created = t.createdAt ? `创建:${String(t.createdAt).slice(0, 10)}` : '';
-          const done = t.doneAt ? `完成:${String(t.doneAt).slice(0, 10)}` : '';
-          const meta = [created, done, due, t.project ? '项目:' + esc(t.project) : ''].filter(Boolean).join(' · ');
-          let line = `- [${t.status === 'done' ? 'x' : ' '}] **${esc(full)}** — \`${p}\``;
-          if (meta) line += `\n  - ${meta}`;
-          if (t.desc) line += `\n  - 详情: ${esc(t.desc)}`;
-          return line;
-        }).join('\n');
-        return `### ${head}（${arr.length}）\n\n${lines}`;
-      }).join('\n\n');
-    };
-
-    const cnt = s => tasks.filter(t => t.status === s).length;
-    const md =
-      `# 本周工作周报（${from} ~ ${to}）\n\n` +
-      `> 生成时间：${ui.nowISO().slice(0, 16)}\n\n` +
-      `## 未启动 · TODO（${cnt('todo')}）\n\n${renderGroup(tasks.filter(t => t.status === 'todo'))}\n\n` +
-      `## 进行中 · PROGRESS（${cnt('doing')}）\n\n${renderGroup(tasks.filter(t => t.status === 'doing'))}\n\n` +
-      `## 已完成 · DONE（本周）（${cnt('done')}）\n\n${renderGroup(tasks.filter(t => t.status === 'done'))}\n`;
-
-    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `本周工作_${from}_${to}.md`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 500);
-    ui.toast(`已导出本周工作 ${tasks.length} 条`);
   },
 
   async setStatus(t, status, silent) {

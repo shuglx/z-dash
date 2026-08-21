@@ -17,7 +17,8 @@
     <nav class="side-nav">
       <div class="nav-item on" data-tab="todo"><span class="k">01</span>待办事项</div>
       <div class="nav-item" data-tab="archive"><span class="k">02</span>历史归档</div>
-      <div class="nav-item" data-tab="links"><span class="k">03</span>常用链接</div>
+      <div class="nav-item" data-tab="weekly"><span class="k">03</span>周报管理</div>
+      <div class="nav-item" data-tab="links"><span class="k">04</span>常用链接</div>
     </nav>
     <div class="side-foot">
       <div class="fs-line"><span class="led" id="fsLed"></span><span id="fsStatusTxt">CONNECTING…</span></div>
@@ -41,6 +42,7 @@
     <!-- ===== 视图容器 ===== -->
     <div id="view-todo" class="view"></div>
     <div id="view-archive" class="view" hidden></div>
+    <div id="view-weekly" class="view" hidden></div>
     <div id="view-links" class="view" hidden></div>
   </main>
 </div>
@@ -49,6 +51,7 @@
 <nav class="mtab">
   <div class="mi on" data-tab="todo"><span class="ic2">[ ]</span>待办</div>
   <div class="mi" data-tab="archive"><span class="ic2">[#]</span>归档</div>
+  <div class="mi" data-tab="weekly"><span class="ic2">[W]</span>周报</div>
   <div class="mi" data-tab="links"><span class="ic2">[&gt;]</span>链接</div>
 </nav>
 
@@ -61,6 +64,7 @@
 <script src="assets/js/ui.js"></script>
 <script src="assets/js/views-todo.js"></script>
 <script src="assets/js/views-archive.js"></script>
+<script src="assets/js/views-weekly.js"></script>
 <script src="assets/js/views-links.js"></script>
 <script src="assets/js/pet.js"></script>
 <script src="assets/js/app.js"></script>

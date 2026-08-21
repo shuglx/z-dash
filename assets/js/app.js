@@ -1,8 +1,8 @@
 /* ============================================================
    Z-DASH app — 路由 / 导航 / 主题 / 后端状态 / 快捷键
    ============================================================ */
-const VIEWS = { todo: todoView, archive: archiveView, links: linksView };
-const TABS = ['todo', 'archive', 'links'];
+const VIEWS = { todo: todoView, archive: archiveView, weekly: weeklyView, links: linksView };
+const TABS = ['todo', 'archive', 'weekly', 'links'];
 
 function route() {
   let h = location.hash.replace(/^#\/?/, '');
