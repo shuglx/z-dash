@@ -44,7 +44,7 @@ const weeklyView = {
 
     el.innerHTML = `
       <div class="topbar">
-        <div class="crumb"><span class="sys">SYS://</span><b>WEEKLY</b> &gt; REPORT · ${y} · ${reported}/${n} REPORTED</div>
+        <div class="crumb"><span class="sys">SYS://</span><b>WEEKLY</b> &gt; REPORT · ${y} · ${reported}/${n} REPORTED<span class="cur">/</span></div>
       </div>
       <div class="wk-year">
         <span class="nav" data-nav="-1" title="上一年">&lt;</span>
@@ -53,8 +53,7 @@ const weeklyView = {
       </div>
       <div class="wk-grid">
         ${Array.from({ length: n }, (_, i) => this.cellHTML(y, i + 1, cur)).join('')}
-      </div>
-      <p class="hint">// 点击周块填写周报 · IMPORT TASK：本周导入待办 / 往周导入归档 · 未来周不可填写</p>`;
+      </div>`;
 
     el.querySelector('.wk-year').onclick = e => {
       const nav = e.target.closest('[data-nav]');

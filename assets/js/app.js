@@ -23,16 +23,16 @@ function updateFsStatus() {
   if (!txt) return;
   if (store.mode === 'server') {
     txt.textContent = 'LIVE · 实时读写 data/';
-    led.style.background = 'var(--cyan)';
   } else {
     txt.textContent = 'SEED · 只读种子数据';
-    led.style.background = 'var(--amber)';
   }
+  led.style.background = 'var(--cp-red)';
 }
 
 function toggleTheme() {
-  const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
-  document.documentElement.dataset.theme = next;
+  const next = document.documentElement.dataset.zdTheme === 'light' ? 'dark' : 'light';
+  document.documentElement.dataset.zdTheme = next;
+  try { localStorage.setItem('zd-theme', next); } catch (e) {}
   store.data.config.theme = next;
   store.save('config');
 }
@@ -48,7 +48,15 @@ function syncPetBtn() {
 
 function applyConfig() {
   const cfg = store.data.config;
-  document.documentElement.dataset.theme = cfg.theme === 'light' ? 'light' : 'dark';
+  let t = cfg.theme === 'light' ? 'light' : 'dark';
+  // 本机主题记忆优先：预览窗口/代理缓存住旧 config 响应时也能保持上次主题
+  try {
+    const saved = localStorage.getItem('zd-theme');
+    if (saved === 'light' || saved === 'dark') t = saved;
+  } catch (e) {}
+  // data-zd-theme：自定义属性, 避免被内嵌浏览器强制注入的 data-theme 覆盖
+  document.documentElement.dataset.zdTheme = t;
+  try { localStorage.setItem('zd-theme', t); } catch (e) {}
   if (cfg.pet !== false) pet.mount();
   syncPetBtn();
 }

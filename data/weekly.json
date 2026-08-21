@@ -1,4 +1,13 @@
 {
   "version": 1,
-  "items": []
+  "items": [
+    {
+      "id": "w-mt2nc67h7ln6d",
+      "year": 2026,
+      "week": 20,
+      "content": "官网岗位",
+      "createdAt": "2026-08-21T07:47:09.293Z",
+      "updatedAt": "2026-08-21T07:47:09.293Z"
+    }
+  ]
 }

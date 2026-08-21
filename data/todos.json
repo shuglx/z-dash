@@ -15,7 +15,7 @@
     {
       "id": "t-mt1dqhucek9vk",
       "title": "[FEAT]等我确定去外地",
-      "status": "todo",
+      "status": "doing",
       "priority": "P2",
       "project": "测试",
       "desc": "老家按流程看那v拉排五千多服务费\n老家按流程看那v拉排五千多服务费\n老家按流程看那v拉排五千多服务费\n老家按流程看那v拉排五千多服务费\n老家按流程看那v拉排五千多服务费",
@@ -47,7 +47,7 @@
     {
       "id": "t-0004",
       "title": "重构 auth 模块，抽掉全局 session",
-      "status": "doing",
+      "status": "todo",
       "priority": "P0",
       "project": "gateway",
       "dueDate": "2026-08-20",
@@ -58,7 +58,7 @@
     {
       "id": "t-0005",
       "title": "[DOC] 补全 API 网关限流设计文档",
-      "status": "doing",
+      "status": "todo",
       "priority": "P1",
       "project": "gateway",
       "dueDate": "2026-08-22",

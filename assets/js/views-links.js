@@ -3,6 +3,16 @@
    规则：分组删除前必须清空组内链接（移出或删除）
    ============================================================ */
 const linksView = {
+  state: { q: '' },
+
+  // 按名称 / URL 过滤（不区分大小写）
+  filtered() {
+    const q = this.state.q.trim().toLowerCase();
+    if (!q) return store.data.links.items;
+    return store.data.links.items.filter(i =>
+      (i.title + ' ' + i.url).toLowerCase().includes(q));
+  },
+
   render() {
     const el = document.getElementById('view-links');
     const d = store.data.links;
@@ -17,21 +27,40 @@ const linksView = {
     }
     el.innerHTML = `
       <div class="topbar">
-        <div class="crumb"><span class="sys">SYS://</span><b>LINKS</b> &gt; BOOKMARKS · ${d.items.length} LINKS</div>
+        <div class="crumb"><span class="sys">SYS://</span><b>LINKS</b> &gt; BOOKMARKS · <span id="lkCount"></span> LINKS<span class="cur">/</span></div>
         <span class="sp"></span>
         <button class="btn warn" data-act="newgroup">+ NEW GROUP</button>
       </div>
-      <div id="grpBox">
-        ${d.groups.map((g, gi) => this.grpHTML(g, d.items.filter(i => i.groupId === g.id), gi % 4)).join('')}
-      </div>`;
+      <input type="text" class="ipt lk-q" id="lkQ" placeholder="grep 关键词... (名称 / URL)" value="${ui.esc(this.state.q)}">
+      <div id="grpBox"></div>`;
+    el.querySelector('#lkQ').oninput = e => { this.state.q = e.target.value; this.updateGroups(); };
     this.bind(el);
+    this.updateGroups();
+  },
+
+  // 局部刷新分组区（不重建搜索框, 输入不丢焦）
+  updateGroups() {
+    const d = store.data.links;
+    const q = this.state.q.trim().toLowerCase();
+    const items = this.filtered();
+    let html = d.groups.map((g, gi) => {
+      const its = items.filter(i => i.groupId === g.id);
+      if (q && !its.length) return ''; // 搜索时隐藏无匹配分组
+      return this.grpHTML(g, its, gi % 4);
+    }).join('');
+    if (q && !items.length) html = `<div class="lk-empty">[ 无匹配链接 ]</div>`;
+    document.getElementById('grpBox').innerHTML = html;
+    const cnt = document.getElementById('lkCount');
+    if (cnt) cnt.textContent = q ? `${items.length}/${d.items.length}` : d.items.length;
   },
 
   grpHTML(g, items, ci = 0) {
+    const searching = !!this.state.q.trim();
+    const collapsed = searching ? false : g.collapsed; // 搜索时强制展开
     return `
       <div class="grp" data-gid="${g.id}">
         <div class="grp-h">
-          <span class="arrow">${g.collapsed ? '[+]' : '[-]'}</span>
+          <span class="arrow">${collapsed ? '[+]' : '[-]'}</span>
           <span class="gname">${ui.esc(g.name)}</span>
           <span class="cnt">// ${items.length} LINKS</span>
           <span class="gops">
@@ -39,10 +68,10 @@ const linksView = {
             <span class="op danger" data-act="delgroup" title="删除分组（需先清空）">[del]</span>
           </span>
         </div>
-        ${g.collapsed ? '' : `
+        ${collapsed ? '' : `
         <div class="links">
           ${items.map(i => this.cardHTML(i, ci)).join('')}
-          <div class="lk add" data-c="${ci}" data-act="newlink" data-gid="${g.id}"><span>+ NEW LINK</span></div>
+          ${searching ? '' : `<div class="lk add" data-c="${ci}" data-act="newlink" data-gid="${g.id}"><span>+ NEW LINK</span></div>`}
         </div>`}
       </div>`;
   },

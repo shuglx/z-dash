@@ -69,7 +69,7 @@ const archiveView = {
     s.page = 1; // 筛选变化重置到第一页
     el.innerHTML = `
       <div class="topbar">
-        <div class="crumb"><span class="sys">SYS://</span><b>ARCHIVE</b> &gt; QUERY · <span id="arcCount"></span></div>
+        <div class="crumb"><span class="sys">SYS://</span><b>ARCHIVE</b> &gt; QUERY · <span id="arcCount"></span><span class="cur">/</span></div>
         <span class="sp"></span>
         <button class="btn gold" data-act="exportReport" title="导出当前筛选结果为 Markdown"><span class="ic">↓</span> EXPORT REPORT</button>
       </div>

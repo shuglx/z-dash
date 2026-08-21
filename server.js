@@ -71,7 +71,11 @@ function serveStatic(req, res, pathname) {
 
 function streamFile(res, fp) {
   const ext = path.extname(fp).toLowerCase();
-  res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' });
+  // no-store: 静态资源不缓存（含嵌入式预览窗/代理), 避免拿到旧版 JS/CSS
+  res.writeHead(200, {
+    'Content-Type': MIME[ext] || 'application/octet-stream',
+    'Cache-Control': 'no-store',
+  });
   fs.createReadStream(fp).pipe(res);
 }
 

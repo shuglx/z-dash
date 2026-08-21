@@ -24,7 +24,7 @@ const todoView = {
     const items = store.data.todos.items;
     el.innerHTML = `
       <div class="topbar">
-        <div class="crumb"><span class="sys">SYS://</span><b>TODO</b> &gt; BOARD · ${items.length} TASKS</div>
+        <div class="crumb"><span class="sys">SYS://</span><b>TODO</b> &gt; BOARD · ${items.length} TASKS<span class="cur">/</span></div>
         <span class="sp"></span>
         <button class="btn warn" data-act="new">+ NEW TASK</button>
       </div>
@@ -39,8 +39,7 @@ const todoView = {
             </div>
           </div>`;
         }).join('')}
-      </div>
-      <p class="hint">// PC 端拖动卡片切状态 · 卡片 [→]/[←] 快捷切状态 · done 卡右上角 ARCHIVE 归档 · 快捷键 N 新建</p>`;
+      </div>`;
     this.bind(el);
   },
 
