@@ -557,7 +557,7 @@ html[data-zd-theme="light"] .m-h{background:linear-gradient(180deg,rgba(0,121,95
 }
 
 /* ---------- 侧边栏系统监控（紧贴 side-foot 上方, 无间隙, 底部虚线分隔） ---------- */
-.sysmon{margin-top:auto;padding:14px 8px 12px;border-bottom:1px dashed var(--line)}
+.sysmon{padding:14px 8px 12px;border-bottom:1px dashed var(--line)}
 .sysmon .t{font-size:10px;color:var(--txt-dim);letter-spacing:2px;margin-bottom:9px}
 .sm-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:10px}
 .sm-row .l{width:32px;color:var(--txt-dim);letter-spacing:1px;flex:none}
@@ -569,6 +569,62 @@ html[data-zd-theme="light"] .m-h{background:linear-gradient(180deg,rgba(0,121,95
 .sm-row.warn .v{color:var(--amber)}
 .sm-row.alert .bar i.on{background:var(--cp-red);box-shadow:0 0 4px color-mix(in srgb,var(--cp-red) 50%,transparent)}
 .sm-row.alert .v{color:var(--cp-red)}
+
+/* ---------- 街区声望（XP 系统） ---------- */
+/* 阶位色: 灰/绿/青/蓝/紫/橙/红/金, --tc 供徽章/进度条/代号文字共用 */
+.t0{--tc:var(--txt-dim)}
+.t1{--tc:#2fe08c}
+.t2{--tc:var(--cyan)}
+.t3{--tc:var(--p2)}
+.t4{--tc:var(--p1)}
+.t5{--tc:var(--p0)}
+.t6{--tc:var(--cp-red)}
+.t7{--tc:var(--amber)}
+
+/* 阶位徽章（挂件 / LEVEL UP 弹窗 / STATS 面板共用, 切角方框） */
+.badge{display:inline-flex;align-items:center;justify-content:center;flex:none;
+  width:24px;height:24px;font-size:14px;line-height:1;
+  border:1px solid var(--tc,var(--txt-dim));color:var(--tc,var(--txt-dim));
+  clip-path:polygon(5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%,0 5px)}
+.badge.big{width:48px;height:48px;font-size:26px;border-width:1.5px}
+
+/* 侧栏 STREET CRED 挂件（推送到底部, 紧贴 SYS MONITOR 上方, 虚线分隔） */
+.cred{margin-top:auto;padding:14px 8px 12px;border-bottom:1px dashed var(--line)}
+.cred .t{font-size:10px;color:var(--txt-dim);letter-spacing:2px;margin-bottom:9px}
+.cred-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.cred-head .lv{font-size:13px;color:var(--txt)}
+.cred-head .code{font-size:10px;color:var(--tc,var(--txt-dim));letter-spacing:1px}
+.cred-xp{font-size:10px;color:var(--txt-dim);letter-spacing:1px;margin-bottom:5px}
+.cred-bar{display:flex;gap:2px;height:8px;margin-bottom:8px}
+.cred-bar i{flex:1;background:var(--bg-2);border:1px solid var(--line)}
+.cred-bar i.on{background:var(--tc,var(--cyan));border-color:transparent;
+  box-shadow:0 0 4px color-mix(in srgb,var(--tc,var(--cyan)) 45%,transparent)}
+.cred-streak{display:flex;justify-content:space-between;font-size:10px;letter-spacing:1px}
+.cred-streak .s{color:var(--amber)}
+.cred-streak .b{color:var(--txt-dim)}
+
+/* LEVEL UP 弹窗（金色仪式感, Esc/按钮关闭） */
+.m-h.lvl{color:var(--amber);justify-content:center;background:linear-gradient(180deg,rgba(249,240,2,.07),transparent)}
+.m-b.lvlup{align-items:center;text-align:center;gap:7px;padding:26px 20px 22px}
+.m-b.lvlup .lv-n{font-size:32px;line-height:1.15;color:var(--amber);letter-spacing:4px;text-shadow:var(--glowA)}
+.m-b.lvlup .lv-code{font-size:13px;letter-spacing:2px;color:var(--tc,var(--txt))}
+.m-b.lvlup .lv-xp{font-size:10px;color:var(--txt-dim);letter-spacing:1px;margin-top:4px}
+
+/* STATS: 街区声望面板 */
+.cred-panel .cp-main{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.cred-panel .cp-lv{flex:1;min-width:220px}
+.cred-panel .cp-lv .l1{font-size:16px;letter-spacing:1px;color:var(--txt)}
+.cred-panel .cp-lv .l1 .code{font-size:11px;margin-left:8px;color:var(--tc,var(--txt-dim));letter-spacing:1px}
+.cred-panel .cp-lv .l2{font-size:11px;color:var(--txt-dim);margin:5px 0 6px}
+.cred-panel .cp-lv .l3{font-size:10px;color:var(--txt-dim);margin-top:6px;letter-spacing:1px}
+.cred-panel .cp-bar{height:10px;border:1px solid var(--line);background:var(--bg-0)}
+.cred-panel .cp-bar i{display:block;height:100%;background:var(--tc,var(--cyan));
+  box-shadow:0 0 8px color-mix(in srgb,var(--tc,var(--cyan)) 40%,transparent);transition:width .3s}
+.cred-panel .cp-streak{display:flex;gap:20px;flex:none;text-align:center}
+.cred-panel .cp-streak .s{font-size:20px;color:var(--amber);line-height:1.2}
+.cred-panel .cp-streak .l{font-size:9px;color:var(--txt-dim);letter-spacing:2px}
+.cred-panel .cp-sub{display:flex;gap:16px;flex-wrap:wrap;margin-top:13px;padding-top:10px;
+  border-top:1px dashed var(--line);font-size:11px;color:var(--txt-dim)}
 
 /* ---------- 工具抽屉 ---------- */
 .main:has(> #view-tools:not([hidden])){

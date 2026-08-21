@@ -2,6 +2,76 @@
   "version": 1,
   "items": [
     {
+      "id": "a-mt34ethhmmyhl",
+      "title": "[DOC] 补全 API 网关限流设计文档",
+      "project": "gateway",
+      "priority": "P1",
+      "desc": "",
+      "createdAt": "2026-08-13T16:45:00",
+      "doneAt": "2026-08-21",
+      "archivedAt": "2026-08-21T15:45:06.245Z"
+    },
+    {
+      "id": "a-mt34ertfm3psn",
+      "title": "重构 auth 模块，抽掉全局 session",
+      "project": "gateway",
+      "priority": "P0",
+      "desc": "日访问刚问过eqwg",
+      "createdAt": "2026-08-12T11:00:00",
+      "doneAt": "2026-08-21",
+      "archivedAt": "2026-08-21T15:45:04.083Z"
+    },
+    {
+      "id": "a-mt34epn4bj4w7",
+      "title": "[FEAT]等我确定去外地",
+      "project": "测试",
+      "priority": "P2",
+      "desc": "老家按流程看那v拉排五千多服务费\n老家按流程看那v拉排五千多服务费\n老家按流程看那v拉排五千多服务费\n老家按流程看那v拉排五千多服务费\n老家按流程看那v拉排五千多服务费",
+      "createdAt": "2026-08-20T10:30:35.220Z",
+      "doneAt": "2026-08-21",
+      "archivedAt": "2026-08-21T15:45:01.264Z"
+    },
+    {
+      "id": "a-mt34eh4uilp3r",
+      "title": "[BUG] 修复 CI 流水线 flaky test",
+      "project": "infra",
+      "priority": "P0",
+      "desc": "",
+      "createdAt": "2026-08-18T09:12:00",
+      "doneAt": "2026-08-20",
+      "archivedAt": "2026-08-21T15:44:50.238Z"
+    },
+    {
+      "id": "a-mt34eg215hb0y",
+      "title": "代码评审：PR #482 webhook 重试逻辑",
+      "project": "gateway",
+      "priority": "P2",
+      "desc": "",
+      "createdAt": "2026-08-09T15:20:00",
+      "doneAt": "2026-08-20",
+      "archivedAt": "2026-08-21T15:44:48.841Z"
+    },
+    {
+      "id": "a-mt34dhu46xbed",
+      "title": "[FEAT] 调研 sqlite-wasm 做本地存储",
+      "project": "dev",
+      "priority": "P1",
+      "desc": "问题额问题we",
+      "createdAt": "2026-08-15T10:05:00",
+      "doneAt": "2026-08-20",
+      "archivedAt": "2026-08-21T15:44:04.492Z"
+    },
+    {
+      "id": "a-mt34df44dbag2",
+      "title": "[功能]大禹3发版",
+      "project": "框架",
+      "priority": "P0",
+      "desc": "",
+      "createdAt": "2026-08-20T14:44:09.501Z",
+      "doneAt": "2026-08-20",
+      "archivedAt": "2026-08-21T15:44:00.964Z"
+    },
+    {
       "id": "a-mt1n2g2tje52w",
       "title": "测试",
       "project": "et",

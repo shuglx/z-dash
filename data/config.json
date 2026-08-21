@@ -1,5 +1,6 @@
 {
   "version": 1,
   "theme": "dark",
-  "pet": true
+  "pet": true,
+  "xpSince": "2026-08-21"
 }

@@ -167,6 +167,7 @@ function applyConfig() {
   store.init().then(() => {
     updateFsStatus();
     applyConfig();
+    xp.init();   // 街区声望: 写入零点锚点 + 渲染侧栏挂件
     route();
   });
 })();

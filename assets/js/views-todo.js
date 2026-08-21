@@ -159,10 +159,9 @@ const todoView = {
     this.render();
   },
 
-  /* 归档单条 done 任务进历史 */
+  /* 归档单条 done 任务进历史（XP 结算点: 街区声望在此刻到账） */
   async archive(t) {
-    store.data.todos.items = store.data.todos.items.filter(x => x.id !== t.id);
-    store.data.archive.items.unshift({
+    const rec = {
       id: ui.uid('a'),
       title: t.title,
       project: t.project || '',
@@ -171,10 +170,12 @@ const todoView = {
       createdAt: t.createdAt || '',
       doneAt: (t.doneAt || ui.nowISO()).slice(0, 10), // 完成日期
       archivedAt: ui.nowISO()                        // 归档时间
-    });
+    };
+    store.data.todos.items = store.data.todos.items.filter(x => x.id !== t.id);
+    store.data.archive.items.unshift(rec);
     await store.save('todos');
     await store.save('archive');
-    ui.toast('TASK ARCHIVED →');
+    xp.afterArchive(rec);   // +XP toast / 升级弹窗 / 挂件刷新
     this.render();
   },
 

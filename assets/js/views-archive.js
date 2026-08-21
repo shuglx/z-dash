@@ -150,6 +150,7 @@ const archiveView = {
         store.data.archive.items = store.data.archive.items.filter(x => x.id !== it.id);
         await store.save('archive');
         ui.toast('RECORD DELETED');
+        xp.renderWidget();   // 删除归档 = 扣减 XP, 挂件同步
         this.state.page = Math.min(this.state.page, Math.max(1, this.pageCount()));
         this.updateList(); this.updateCal();
       }
