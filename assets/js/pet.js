@@ -67,7 +67,6 @@ const pet = {
       v.muted = true;
       v.playsInline = true;
       v.autoplay = true;
-      v.title = 'pet';
       stage.appendChild(v);
       this.vids[i] = v;
     }
@@ -76,7 +75,6 @@ const pet = {
     // 命中层：覆盖人物区域，承载全部交互（视频本身点击穿透）
     const hit = document.createElement('div');
     hit.className = 'pet-hit';
-    hit.title = 'pet';
     hit.style.left = (this.HIT_BOX.x0 / 640 * 100) + '%';
     hit.style.top = (this.HIT_BOX.y0 / 360 * 100) + '%';
     hit.style.width = ((this.HIT_BOX.x1 - this.HIT_BOX.x0) / 640 * 100) + '%';
