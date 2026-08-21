@@ -40,11 +40,23 @@ const ui = {
 
   /* ---------- 弹层基础 ---------- */
   _mask: null, _box: null,
+  _escBound: false,
   _open(html) {
     this._mask = document.getElementById('modalMask');
     this._box = document.getElementById('modalBox');
     this._box.innerHTML = html;
     this._mask.hidden = false;
+    // Esc 关闭弹层（全局绑定一次）：combo 下拉展开时优先关下拉, 不关弹层
+    if (!this._escBound) {
+      this._escBound = true;
+      document.addEventListener('keydown', e => {
+        if (e.key !== 'Escape') return;
+        if (!this._mask || this._mask.hidden) return;
+        const list = this._box.querySelector('.combo-list:not([hidden])');
+        if (list) { list.hidden = true; return; }   // 先关打开的下拉
+        this.close();
+      });
+    }
   },
   close() {
     if (this._mask) this._mask.hidden = true;

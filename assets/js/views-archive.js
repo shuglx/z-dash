@@ -237,7 +237,7 @@ const archiveView = {
     const start = (this.state.page - 1) * this.PER_PAGE;
     const list = all.slice(start, start + this.PER_PAGE);
     box.innerHTML = list.length ? list.map(it => `
-      <div class="arc-item">
+      <div class="arc-item" data-id="${it.id}">
         <span class="d">${ui.fmtMD(it.doneAt)}</span>
         <span class="t"><s>${ui.esc(it.title)}</s></span>
         ${it.project ? `<span class="proj">${ui.esc(it.project)}</span>` : ''}

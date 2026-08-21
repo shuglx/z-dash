@@ -12,6 +12,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
 const ROOT = __dirname;
 const DATA_DIR = path.join(ROOT, 'data');
@@ -88,10 +89,52 @@ function readBody(req, cb) {
   req.on('error', cb);
 }
 
+/* ---------- 系统监控：每秒采样 CPU 占用（跨平台, 供 /api/sys） ---------- */
+let cpuPct = 0;
+let cpuPrev = os.cpus().map(c => c.times);
+setInterval(() => {
+  const cur = os.cpus().map(c => c.times);
+  let idle = 0, total = 0;
+  cur.forEach((t, i) => {
+    const p = cpuPrev[i] || t;
+    const dIdle = t.idle - p.idle;
+    const dTotal = (t.user - p.user) + (t.nice - p.nice) + (t.sys - p.sys) + (t.irq - p.irq) + dIdle;
+    idle += dIdle; total += dTotal;
+  });
+  cpuPrev = cur;
+  if (total > 0) cpuPct = Math.max(0, Math.min(100, Math.round((1 - idle / total) * 100)));
+}, 1000);
+
 /* ---------- 服务器 ---------- */
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://localhost');
   const key = parseApiKey(url);
+
+  // 系统监控（独立于 data/*.json）
+  if (req.method === 'GET' && url.pathname === '/api/sys') {
+    const memTotal = os.totalmem(), memFree = os.freemem();
+    const body = {
+      cpu: cpuPct,
+      mem: { total: memTotal, free: memFree, pct: Math.round((1 - memFree / memTotal) * 100) },
+      uptime: os.uptime(),
+      disk: null
+    };
+    const done = () => sendJson(res, 200, body);
+    if (typeof fs.statfs === 'function') {
+      fs.statfs(ROOT, (err, st) => {
+        if (!err && st && st.blocks > 0) {
+          const used = st.blocks - st.bfree;
+          body.disk = {
+            total: st.blocks * st.bsize,
+            free: st.bfree * st.bsize,
+            pct: Math.round(used / st.blocks * 100)
+          };
+        }
+        done();
+      });
+    } else done();
+    return;
+  }
 
   if (req.method === 'GET' && key) {
     const fp = path.join(DATA_DIR, key + '.json');

@@ -1,8 +1,8 @@
 /* ============================================================
    Z-DASH app — 路由 / 导航 / 主题 / 后端状态 / 快捷键
    ============================================================ */
-const VIEWS = { todo: todoView, archive: archiveView, weekly: weeklyView, links: linksView };
-const TABS = ['todo', 'archive', 'weekly', 'links'];
+const VIEWS = { stats: statsView, todo: todoView, archive: archiveView, weekly: weeklyView, tools: toolsView, links: linksView };
+const TABS = ['stats', 'todo', 'archive', 'weekly', 'tools', 'links'];
 
 function route() {
   let h = location.hash.replace(/^#\/?/, '');
@@ -84,15 +84,84 @@ function applyConfig() {
     };
   });
 
-  // 快捷键：N 新建任务（待办页 & 无弹层 & 非输入状态）
-  document.addEventListener('keydown', e => {
-    if (e.key !== 'n' && e.key !== 'N') return;
-    const tag = document.activeElement && document.activeElement.tagName;
-    if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
-    if (!document.getElementById('modalMask').hidden) return;
-    const h = location.hash.replace(/^#\/?/, '');
-    if ((TABS.includes(h) ? h : 'todo') === 'todo') todoView.editModal(null);
+  // 快捷键：数字 1-9 切页 · E 编辑/查看鼠标 hover 项 · N 新建任务
+  // （均要求：无弹层 & 焦点不在输入控件上 & 无修饰键）
+  let hovEl = null;   // 最近 hover 的可操作项（任务卡/归档行/链接卡/周块）
+  document.addEventListener('mouseover', e => {
+    const t = e.target instanceof Element ? e.target : null;
+    hovEl = t ? t.closest('.task, .arc-item, .lk[data-id], .wk-cell') : null;
   });
+  const curTab = () => {
+    const h = location.hash.replace(/^#\/?/, '');
+    return TABS.includes(h) ? h : 'todo';
+  };
+  const editHovered = () => {
+    // hover 元素可能已随视图切换失效（隐藏视图中的旧元素）
+    if (!hovEl || !hovEl.isConnected || hovEl.closest('[hidden]')) return;
+    const tab = curTab();
+    if (tab === 'todo') {
+      const t = store.data.todos.items.find(x => x.id === hovEl.dataset.id);
+      if (t) todoView.editModal(t);
+    } else if (tab === 'archive') {
+      const it = store.data.archive.items.find(x => x.id === hovEl.dataset.id);
+      if (it) archiveView.showDetail(it);
+    } else if (tab === 'weekly') {
+      if (hovEl.classList.contains('future')) { ui.toast('未来周不可填写', 'warn'); return; }
+      weeklyView.openModal(weeklyView.state.year, Number(hovEl.dataset.w));
+    } else if (tab === 'links') {
+      const it = store.data.links.items.find(x => x.id === hovEl.dataset.id);
+      if (it) linksView.linkModal(it);
+    }
+  };
+  document.addEventListener('keydown', e => {
+    if (e.ctrlKey || e.altKey || e.metaKey) return;
+    if (!document.getElementById('modalMask').hidden) return;
+    const tag = document.activeElement && document.activeElement.tagName;
+    const typing = tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA';
+    if (typing) return;
+    // 数字 1-9 → 切页
+    if (e.key >= '1' && e.key <= '9') {
+      const t = TABS[Number(e.key) - 1];
+      if (t) location.hash = '/' + t;
+      return;
+    }
+    // E → 编辑/查看当前 hover 项
+    if (e.key === 'e' || e.key === 'E') return editHovered();
+    // N → 新建任务（仅待办页）
+    if (e.key === 'n' || e.key === 'N') {
+      if (curTab() === 'todo') todoView.editModal(null);
+    }
+  });
+
+  // 系统监控：3s 轮询 /api/sys 更新侧边栏 LED 条
+  const setSm = (id, pct) => {
+    const row = document.getElementById(id);
+    if (!row) return;
+    const v = row.querySelector('.v');
+    const cells = row.querySelectorAll('.bar i');
+    if (pct == null || isNaN(pct)) {
+      row.className = 'sm-row alert';
+      v.textContent = 'N/A';
+      cells.forEach(c => c.className = '');
+      return;
+    }
+    const on = Math.round(pct / 10);
+    cells.forEach((c, i) => c.className = i < on ? 'on' : '');
+    row.className = 'sm-row' + (pct >= 85 ? ' alert' : pct >= 60 ? ' warn' : '');
+    v.textContent = pct + '%';
+  };
+  const pollSys = () => {
+    fetch('api/sys').then(r => r.ok ? r.json() : null).then(d => {
+      if (!d) throw new Error('no data');
+      setSm('smCpu', d.cpu);
+      setSm('smMem', d.mem ? d.mem.pct : null);
+      setSm('smDisk', d.disk ? d.disk.pct : null);
+    }).catch(() => {
+      setSm('smCpu', null); setSm('smMem', null); setSm('smDisk', null);
+    });
+  };
+  pollSys();
+  setInterval(pollSys, 3000);
 
   // 启动：先载数据（含 config）再应用配置并渲染
   store.init().then(() => {

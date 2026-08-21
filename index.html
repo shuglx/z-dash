@@ -18,11 +18,19 @@ try{document.documentElement.dataset.zdTheme=localStorage.getItem('zd-theme')||'
   <aside class="side">
     <div class="brand">Z<em>-</em>DASH<small>PERSONAL WORKSPACE</small></div>
     <nav class="side-nav">
-      <div class="nav-item on" data-tab="todo"><span class="k">01</span>待办事项</div>
-      <div class="nav-item" data-tab="archive"><span class="k">02</span>历史归档</div>
-      <div class="nav-item" data-tab="weekly"><span class="k">03</span>周报管理</div>
-      <div class="nav-item" data-tab="links"><span class="k">04</span>常用链接</div>
+      <div class="nav-item" data-tab="stats"><span class="k">01</span>数据统计</div>
+      <div class="nav-item on" data-tab="todo"><span class="k">02</span>待办事项</div>
+      <div class="nav-item" data-tab="archive"><span class="k">03</span>历史归档</div>
+      <div class="nav-item" data-tab="weekly"><span class="k">04</span>周报管理</div>
+      <div class="nav-item" data-tab="tools"><span class="k">05</span>工具抽屉</div>
+      <div class="nav-item" data-tab="links"><span class="k">06</span>常用链接</div>
     </nav>
+    <div class="sysmon" id="sysMon">
+      <div class="t">SYS MONITOR</div>
+      <div class="sm-row" id="smCpu"><span class="l">CPU</span><span class="bar"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="v">--</span></div>
+      <div class="sm-row" id="smMem"><span class="l">MEM</span><span class="bar"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="v">--</span></div>
+      <div class="sm-row" id="smDisk"><span class="l">DISK</span><span class="bar"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="v">--</span></div>
+    </div>
     <div class="side-foot">
       <div class="fs-line"><span class="led" id="fsLed"></span><span id="fsStatusTxt">CONNECTING…</span></div>
       <div class="side-actions">
@@ -43,18 +51,22 @@ try{document.documentElement.dataset.zdTheme=localStorage.getItem('zd-theme')||'
     </div>
 
     <!-- ===== 视图容器 ===== -->
+    <div id="view-stats" class="view" hidden></div>
     <div id="view-todo" class="view"></div>
     <div id="view-archive" class="view" hidden></div>
     <div id="view-weekly" class="view" hidden></div>
+    <div id="view-tools" class="view" hidden></div>
     <div id="view-links" class="view" hidden></div>
   </main>
 </div>
 
 <!-- ===== 移动端底部 Tab ===== -->
 <nav class="mtab">
+  <div class="mi" data-tab="stats"><span class="ic2">[%]</span>统计</div>
   <div class="mi on" data-tab="todo"><span class="ic2">[ ]</span>待办</div>
   <div class="mi" data-tab="archive"><span class="ic2">[#]</span>归档</div>
   <div class="mi" data-tab="weekly"><span class="ic2">[W]</span>周报</div>
+  <div class="mi" data-tab="tools"><span class="ic2">[T]</span>工具</div>
   <div class="mi" data-tab="links"><span class="ic2">[&gt;]</span>链接</div>
 </nav>
 
@@ -69,6 +81,8 @@ try{document.documentElement.dataset.zdTheme=localStorage.getItem('zd-theme')||'
 <script src="assets/js/views-archive.js"></script>
 <script src="assets/js/views-weekly.js"></script>
 <script src="assets/js/views-links.js"></script>
+<script src="assets/js/views-tools.js"></script>
+<script src="assets/js/views-stats.js"></script>
 <script src="assets/js/pet.js"></script>
 <script src="assets/js/app.js"></script>
 </body>
