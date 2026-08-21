@@ -105,6 +105,13 @@ html[data-zd-theme="light"]{
 /* ---------- 基础 ---------- */
 *{margin:0;padding:0;box-sizing:border-box}
 [hidden]{display:none!important}
+/* 滚动条: 细条 + 主题色, 融入终端风格（Chrome/Edge + Firefox） */
+html{scrollbar-width:thin;scrollbar-color:var(--line-hi) transparent}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--line-hi);border:2px solid var(--bg-0)}
+::-webkit-scrollbar-thumb:hover{background:var(--cyan-dim)}
+::-webkit-scrollbar-corner{background:transparent}
 html,body{height:100%}
 body{
   font-family:var(--mono);
@@ -147,6 +154,10 @@ button{font-family:var(--mono)}
   border-bottom:1px solid var(--line);margin-bottom:10px}
 .brand em{font-style:normal;color:var(--magenta);text-shadow:var(--glowM)}
 .brand small{display:block;font-size:10px;font-weight:400;color:var(--txt-dim);letter-spacing:1px;margin-top:2px;text-shadow:none}
+.help-btn{float:right;width:16px;height:16px;margin:0 8px 0 0;padding:0;
+  font-size:10px;line-height:14px;font-family:var(--mono);text-align:center;
+  color:var(--txt-dim);background:none;border:1px solid var(--line-hi);cursor:pointer}
+.help-btn:hover{color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 6px color-mix(in srgb,var(--cyan) 40%,transparent)}
 .brand-s{font-size:14px;font-weight:700;letter-spacing:1px;color:var(--cyan)}
 .brand-s em{font-style:normal;color:var(--magenta)}
 .nav-item{
@@ -603,10 +614,12 @@ html[data-zd-theme="light"] .m-h{background:linear-gradient(180deg,rgba(0,121,95
 .cred-streak .s{color:var(--amber)}
 .cred-streak .b{color:var(--txt-dim)}
 
-/* LEVEL UP 弹窗（金色仪式感, Esc/按钮关闭） */
+/* LEVEL UP 弹窗（金色仪式感, Esc/按钮关闭; LV 数字跟随阶位色 --tc） */
 .m-h.lvl{color:var(--amber);justify-content:center;background:linear-gradient(180deg,rgba(249,240,2,.07),transparent)}
 .m-b.lvlup{align-items:center;text-align:center;gap:7px;padding:26px 20px 22px}
-.m-b.lvlup .lv-n{font-size:32px;line-height:1.15;color:var(--amber);letter-spacing:4px;text-shadow:var(--glowA)}
+.m-b.lvlup .lv-n{font-size:32px;line-height:1.15;color:var(--tc,var(--amber));letter-spacing:4px;
+  text-shadow:0 0 14px color-mix(in srgb,var(--tc,var(--amber)) 45%,transparent)}
+html[data-zd-theme="light"] .m-b.lvlup .lv-n{text-shadow:none}
 .m-b.lvlup .lv-code{font-size:13px;letter-spacing:2px;color:var(--tc,var(--txt))}
 .m-b.lvlup .lv-xp{font-size:10px;color:var(--txt-dim);letter-spacing:1px;margin-top:4px}
 
@@ -625,6 +638,40 @@ html[data-zd-theme="light"] .m-h{background:linear-gradient(180deg,rgba(0,121,95
 .cred-panel .cp-streak .l{font-size:9px;color:var(--txt-dim);letter-spacing:2px}
 .cred-panel .cp-sub{display:flex;gap:16px;flex-wrap:wrap;margin-top:13px;padding-top:10px;
   border-top:1px dashed var(--line);font-size:11px;color:var(--txt-dim)}
+/* STATS 面板头部的阶位总览按钮: 灰色 眼睛图标+阶位 文字, 吸收弹性空位置于 tag 左侧相邻 */
+.cred-q{margin-left:auto;flex:none;padding:3px 10px;font-size:12px;line-height:1;display:inline-flex;align-items:center;gap:5px}
+.cred-q svg{display:block}
+.cred-panel .panel-h .tag.adj{margin-left:0}
+
+/* ---------- 阶位总览（STATS 预览弹层 / demo-cred 页共用） ---------- */
+.g-sec-t{font-size:12px;color:var(--amber);letter-spacing:2px;margin:30px 0 12px}
+.cred-gallery .g-sec-t{margin:20px 0 12px}
+.cred-gallery .g-sec-t:first-child{margin-top:0}
+/* LEVEL UP 弹窗预览: 直接展示 .modal 卡片本体（无遮罩, 三卡等高拉伸） */
+.lvup-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:stretch}
+.lvup-row .modal{max-width:none;position:relative;align-self:stretch;display:flex;flex-direction:column}
+.lvup-row .modal .m-b.lvlup{flex:1;justify-content:center}
+/* 阶位区块 */
+.tier-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.cred-gallery .tier-grid{grid-template-columns:1fr}   /* 弹层内单列, 挂件+面板并排放得下 */
+.tier-sec{border:1px solid var(--line);background:var(--bg-1);padding:14px 16px 16px}
+.tier-sec .sec-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+  border-bottom:1px dashed var(--line);padding-bottom:9px;margin-bottom:12px}
+.tier-sec .sec-h .no{font-size:10px;color:var(--txt-dim);letter-spacing:2px}
+.tier-sec .sec-h .nm{font-size:13px;letter-spacing:1px;color:var(--tc,var(--cyan))}
+.tier-sec .sec-h .rng{font-size:10px;color:var(--txt-dim);letter-spacing:1px}
+.tier-sec .sec-h .gate{font-size:10px;color:var(--txt-dim);margin-left:auto;letter-spacing:1px}
+.tier-sec .sec-b{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+/* 侧栏挂件模拟环境（不使用 .side 类, 避开移动端 display:none） */
+.side-sim{width:216px;flex:none;display:flex;flex-direction:column;
+  background:var(--bg-0);border:1px solid var(--line);padding:8px}
+.side-sim .cred{margin-top:0}
+.tier-sec .cred-panel{flex:1;min-width:300px;margin-bottom:0}
+/* 窄屏单列 */
+@media (max-width:1100px){
+  .tier-grid{grid-template-columns:1fr}
+  .lvup-row{grid-template-columns:1fr}
+}
 
 /* ---------- 工具抽屉 ---------- */
 .main:has(> #view-tools:not([hidden])){

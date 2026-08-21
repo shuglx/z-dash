@@ -27,9 +27,11 @@ const xp = {
       cfg.xpSince = ui.today();
       store.save('config');   // seed 只读模式内部自动跳过
     }
-    // 已展示等级记忆（升级弹窗判据）: 首次访问静默对齐当前等级, 不弹窗
+    // 已展示等级记忆（升级弹窗判据）: 首次访问静默对齐当前等级; 数据重置后向下同步, 不吞后续升级弹窗
     try {
-      if (!localStorage.getItem('zd-xp-lv')) localStorage.setItem('zd-xp-lv', String(this.calc().level));
+      const cur = this.calc().level;
+      const seen = Number(localStorage.getItem('zd-xp-lv')) || 0;
+      if (!seen || seen > cur) localStorage.setItem('zd-xp-lv', String(cur));
     } catch (e) {}
     this.renderWidget();
   },
@@ -135,20 +137,17 @@ const xp = {
     });
     return Object.assign(this.levelOf(total), {
       total, baseSum, bonusSum, byPri,
-      streak: this.currentStreak(set), best: this.bestStreak(set)
+      streak: this.currentStreak(set), best: this.bestStreak(set),
+      scoredCount: this.scored().length
     });
   },
   fmt(n) { return n.toLocaleString('en-US'); },
 
   /* ---------- 侧边栏挂件 ---------- */
-  renderWidget() {
-    const el = document.getElementById('credWidget');
-    if (!el) return;
-    const c = this.calc();
+  widgetHTML(c) {
     const t = this.tierOf(c.level);
     const on = Math.round(c.pct / 10);
-    el.className = 'cred ' + t.cls;
-    el.innerHTML = `
+    return `
       <div class="t">STREET CRED</div>
       <div class="cred-head">
         <span class="badge" title="${t.code} · ${t.name}">${t.glyph}</span>
@@ -158,6 +157,13 @@ const xp = {
       <div class="cred-xp">XP ${this.fmt(c.total)}${c.need ? ' / ' + this.fmt(c.floor + c.need) : ' · MAX'}</div>
       <div class="cred-bar">${Array.from({ length: 10 }, (_, i) => `<i${i < on ? ' class="on"' : ''}></i>`).join('')}</div>
       <div class="cred-streak"><span class="s">▲ STREAK ${c.streak}D</span><span class="b">BEST ${c.best}D</span></div>`;
+  },
+  renderWidget() {
+    const el = document.getElementById('credWidget');
+    if (!el) return;
+    const c = this.calc();
+    el.className = 'cred ' + this.tierOf(c.level).cls;
+    el.innerHTML = this.widgetHTML(c);
   },
 
   /* ---------- 归档结算反馈（todoView.archive 保存后调用） ---------- */
@@ -173,17 +179,130 @@ const xp = {
   },
 
   /* ---------- LEVEL UP 弹窗 ---------- */
-  levelUpModal(c) {
+  levelUpHTML(c) {
     const t = this.tierOf(c.level);
-    ui._open(`
+    return `
       <div class="m-h lvl">▲ STREET CRED UP</div>
       <div class="m-b lvlup">
         <span class="badge big ${t.cls}">${t.glyph}</span>
-        <div class="lv-n">LV.${c.level}</div>
+        <div class="lv-n ${t.cls}">LV.${c.level}</div>
         <div class="lv-code ${t.cls}">${t.code} · ${t.name}</div>
         <div class="lv-xp">TOTAL ${this.fmt(c.total)} XP</div>
       </div>
-      <div class="m-f"><button type="button" class="btn gold" data-x>CLOSE</button></div>`);
+      <div class="m-f"><button type="button" class="btn gold" data-x>CLOSE</button></div>`;
+  },
+  levelUpModal(c) {
+    ui._open(this.levelUpHTML(c));
     ui._box.querySelector('[data-x]').onclick = () => ui.close();
+  },
+
+  /* ---------- STATS 页声望面板（views-stats 调用; withBtn 附加"阶位总览"入口） ---------- */
+  panelHTML(c, withBtn) {
+    c = c || this.calc();
+    const t = this.tierOf(c.level);
+    const nt = this.nextTier(c.level);
+    const nextTxt = c.need
+      ? `还差 ${this.fmt(c.floor + c.need - c.total)} XP 升级`
+      : '已封顶';
+    return `
+      <div class="panel cred-panel ${t.cls}">
+        <div class="panel-h">STREET CRED${withBtn ? '<button type="button" class="btn mini ghost cred-q" data-act="credTiers"><svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><path d="M1.5 8s2.5-4.5 6.5-4.5S14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8Z" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>阶位</button><span class="tag adj">街区声望 · 归档即结算</span>' : '<span class="tag">街区声望 · 归档即结算</span>'}</div>
+        <div class="panel-b">
+          <div class="cp-main">
+            <span class="badge big" title="${t.code} · ${t.name}">${t.glyph}</span>
+            <div class="cp-lv">
+              <div class="l1">LV.${c.level}<span class="code">${t.code} · ${t.name}</span></div>
+              <div class="l2">XP ${this.fmt(c.total)}${c.need ? ' / ' + this.fmt(c.floor + c.need) : ' · MAX'} · ${nextTxt}</div>
+              <div class="cp-bar"><i style="width:${c.pct}%"></i></div>
+              <div class="l3">${nt ? `下一阶位 ${nt.glyph} ${nt.code} · ${nt.name} · LV.${nt.lv}` : '已抵达最高阶位 Ω ICON'}</div>
+            </div>
+            <div class="cp-streak">
+              <div class="cell"><div class="s">▲ ${c.streak}D</div><div class="l">STREAK</div></div>
+              <div class="cell"><div class="s">${c.best}D</div><div class="l">BEST</div></div>
+            </div>
+          </div>
+          <div class="cp-sub">
+            <span>基础 ${this.fmt(c.baseSum)} XP</span>
+            <span>STREAK 加成 ${this.fmt(c.bonusSum)} XP</span>
+            <span>P0 ×${c.byPri.P0} · P1 ×${c.byPri.P1} · P2 ×${c.byPri.P2}</span>
+            <span>计分归档 ${c.scoredCount} 条</span>
+          </div>
+        </div>
+      </div>`;
+  },
+
+  /* ---------- 阶位总览（STATS 预览弹层 / demo-cred 页共用） ---------- */
+  // 累计到 LV.lv 所需总 XP
+  totalForLV(lv) {
+    let s = 0;
+    for (let l = 1; l < lv; l++) s += this.needXP(l);
+    return s;
+  },
+  // 各阶位代表档案（等级取阶位中段; XP 由真实曲线计算）
+  GALLERY: [
+    { lv: 3,  frac: .45, streak: 3,  best: 5,  p: [1, 2, 3] },
+    { lv: 7,  frac: .45, streak: 7,  best: 10, p: [5, 8, 12] },
+    { lv: 12, frac: .45, streak: 12, best: 16, p: [10, 16, 28] },
+    { lv: 17, frac: .45, streak: 17, best: 21, p: [16, 28, 50] },
+    { lv: 23, frac: .45, streak: 23, best: 27, p: [26, 45, 80] },
+    { lv: 30, frac: .45, streak: 30, best: 34, p: [40, 68, 115] },
+    { lv: 40, frac: .45, streak: 38, best: 43, p: [90, 150, 260] },
+    { lv: 50, frac: 0,   streak: 47, best: 52, p: [140, 230, 400] }
+  ],
+  // 由代表档案构造 calc() 形状的结果（不读真实数据）
+  galleryCalc(d) {
+    const max = d.lv >= this.MAX_LV;
+    const total = max ? this.totalForLV(this.MAX_LV) : this.totalForLV(d.lv) + Math.round(this.needXP(d.lv) * d.frac);
+    const baseSum = d.p[0] * 30 + d.p[1] * 20 + d.p[2] * 10;
+    return Object.assign(this.levelOf(total), {
+      total, baseSum, bonusSum: Math.max(0, total - baseSum),
+      byPri: { P0: d.p[0], P1: d.p[1], P2: d.p[2] },
+      streak: d.streak, best: d.best,
+      scoredCount: d.p[0] + d.p[1] + d.p[2]
+    });
+  },
+  // LEVEL UP 弹窗预览（STREET KID / NETRUNNER / ICON 三个代表阶位）
+  levelUpRowHTML() {
+    return [2, 4, 7].map(i => {
+      const t = this.TIERS[i];
+      const d = Object.assign({}, this.GALLERY[i], { lv: t.lv, frac: 0 });
+      return `<div class="modal">${this.levelUpHTML(this.galleryCalc(d))}</div>`;
+    }).join('');
+  },
+  // 8 阶位区块：侧栏挂件 + STATS 面板
+  tiersHTML() {
+    return this.TIERS.map((t, i) => {
+      const c = this.galleryCalc(this.GALLERY[i]);
+      const end = i < this.TIERS.length - 1 ? this.TIERS[i + 1].lv - 1 : this.MAX_LV;
+      const gate = t.lv <= 1 ? 'XP ≥ 0' : '累计 XP ≥ ' + this.fmt(this.totalForLV(t.lv));
+      return `
+        <div class="tier-sec ${t.cls}">
+          <div class="sec-h">
+            <span class="no">#0${i + 1}</span><span class="nm">${t.glyph} ${t.code} · ${t.name}</span>
+            <span class="rng">LV.${t.lv} ~ ${end}</span>
+            <span class="gate">${gate}</span>
+          </div>
+          <div class="sec-b">
+            <div class="side-sim"><div class="cred ${t.cls}">${this.widgetHTML(c)}</div></div>
+            ${this.panelHTML(c)}
+          </div>
+        </div>`;
+    }).join('');
+  },
+  // 阶位总览弹层（STATS 页"▲ 阶位总览"按钮触发）
+  tierModal() {
+    ui._open(`
+      <div class="m-h">▲ STREET CRED · 阶位总览</div>
+      <div class="m-b view cred-gallery">
+        <div class="g-sec-t">LEVEL UP 弹窗 · 三个代表阶位</div>
+        <div class="lvup-row">${this.levelUpRowHTML()}</div>
+        <div class="g-sec-t">各阶位 · 挂件 + STATS 面板</div>
+        <div class="tier-grid">${this.tiersHTML()}</div>
+      </div>
+      <div class="m-f"><button type="button" class="btn ghost" data-x>CLOSE</button></div>`);
+    ui._box.classList.add('wide');
+    // 注意: 画廊内 LEVEL UP 预览卡也含 [data-x], 用 :scope > .m-f 只绑弹层真实底部按钮
+    const closeBtn = ui._box.querySelector(':scope > .m-f [data-x]');
+    if (closeBtn) closeBtn.onclick = () => ui.close();
   }
 };

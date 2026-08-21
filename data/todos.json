@@ -1,15 +1,4 @@
 {
   "version": 1,
-  "items": [
-    {
-      "id": "t-0006",
-      "title": "升级 Node 22，修掉 deprecation 告警",
-      "status": "done",
-      "priority": "P1",
-      "project": "infra",
-      "dueDate": null,
-      "createdAt": "2026-08-10T09:00:00",
-      "doneAt": "2026-08-21T15:44:53.158Z"
-    }
-  ]
+  "items": []
 }

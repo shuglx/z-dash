@@ -30,7 +30,7 @@ const statsView = {
         <div class="kpi"><div class="v">${active}</div><div class="l">进行中 / ACTIVE</div></div>
         <div class="kpi"><div class="v">${projects}</div><div class="l">项目数 / PROJECTS</div></div>
       </div>
-      ${this.credPanel()}
+      ${xp.panelHTML(null, true)}
       <div class="panel">
         <div class="panel-h">CONTRIBUTIONS<span class="tag">完成热力图 · 近 53 周（按归档 doneAt）</span></div>
         <div class="panel-b">
@@ -50,41 +50,9 @@ const statsView = {
       </div>
       <div class="tip" id="hmTip" hidden></div>`;
     this.bindTip(el);
-  },
-
-  /* ---------- 街区声望面板（XP / 等级 / streak, 全部由归档派生） ---------- */
-  credPanel() {
-    const c = xp.calc();
-    const t = xp.tierOf(c.level);
-    const nt = xp.nextTier(c.level);
-    const nextTxt = c.need
-      ? `还差 ${xp.fmt(c.floor + c.need - c.total)} XP 升级`
-      : '已封顶';
-    return `
-      <div class="panel cred-panel ${t.cls}">
-        <div class="panel-h">STREET CRED<span class="tag">街区声望 · 归档即结算 · 自 ${xp.since()} 起算</span></div>
-        <div class="panel-b">
-          <div class="cp-main">
-            <span class="badge big" title="${t.code} · ${t.name}">${t.glyph}</span>
-            <div class="cp-lv">
-              <div class="l1">LV.${c.level}<span class="code">${t.code} · ${t.name}</span></div>
-              <div class="l2">XP ${xp.fmt(c.total)}${c.need ? ' / ' + xp.fmt(c.floor + c.need) : ' · MAX'} · ${nextTxt}</div>
-              <div class="cp-bar"><i style="width:${c.pct}%"></i></div>
-              <div class="l3">${nt ? `下一阶位 ${nt.glyph} ${nt.code} · ${nt.name} · LV.${nt.lv}` : '已抵达最高阶位 Ω ICON'}</div>
-            </div>
-            <div class="cp-streak">
-              <div class="cell"><div class="s">▲ ${c.streak}D</div><div class="l">STREAK</div></div>
-              <div class="cell"><div class="s">${c.best}D</div><div class="l">BEST</div></div>
-            </div>
-          </div>
-          <div class="cp-sub">
-            <span>基础 ${xp.fmt(c.baseSum)} XP</span>
-            <span>STREAK 加成 ${xp.fmt(c.bonusSum)} XP</span>
-            <span>P0 ×${c.byPri.P0} · P1 ×${c.byPri.P1} · P2 ×${c.byPri.P2}</span>
-            <span>计分归档 ${xp.scored().length} 条</span>
-          </div>
-        </div>
-      </div>`;
+    // 阶位总览预览弹层
+    const tiersBtn = el.querySelector('[data-act="credTiers"]');
+    if (tiersBtn) tiersBtn.onclick = () => xp.tierModal();
   },
 
   /* 自定义 tooltip：hover [data-tip] 元素时跟随显示（热力图/趋势图共用, 终端风格） */

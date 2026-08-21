@@ -13,6 +13,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const zlib = require('zlib');
 
 const ROOT = __dirname;
 const DATA_DIR = path.join(ROOT, 'data');
@@ -105,6 +106,93 @@ setInterval(() => {
   if (total > 0) cpuPct = Math.max(0, Math.min(100, Math.round((1 - idle / total) * 100)));
 }, 1000);
 
+/* ---------- 自动备份：每天 00:01 打包 data/ -> data_backup/*.tar.gz ----------
+   程序运行中才触发（错过不补跑）; 保留数读 config.json 的 backupKeep（默认 7） */
+const BACKUP_DIR = path.join(ROOT, 'data_backup');
+const pad2 = n => String(n).padStart(2, '0');
+const stampStr = d => `${d.getFullYear()}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}-${pad2(d.getHours())}${pad2(d.getMinutes())}${pad2(d.getSeconds())}`;
+
+// 极简 tar（仅普通文件）+ gzip, 零依赖
+function tarGzip(files) {
+  const header = (name, size, mtime) => {
+    const h = Buffer.alloc(512);
+    h.write(name.slice(0, 99), 0);
+    h.write('0000644\0', 100);                                   // mode
+    h.write('0000000\0', 108);                                   // uid
+    h.write('0000000\0', 116);                                   // gid
+    h.write(size.toString(8).padStart(11, '0') + '\0', 124);     // size
+    h.write(Math.floor(mtime / 1000).toString(8).padStart(11, '0') + '\0', 136); // mtime
+    h.write('        ', 148);                                    // chksum 先置空格
+    h.write('0', 156);                                           // typeflag: 普通文件
+    h.write('ustar\0', 257);                                     // magic
+    h.write('00', 263);                                          // version
+    let sum = 0;
+    for (const b of h) sum += b;
+    h.write(sum.toString(8).padStart(6, '0') + '\0 ', 148);      // 实际校验和
+    return h;
+  };
+  const chunks = [];
+  for (const f of files) {
+    chunks.push(header(f.name, f.data.length, f.mtime));
+    chunks.push(f.data);
+    const pad = (512 - (f.data.length % 512)) % 512;
+    if (pad) chunks.push(Buffer.alloc(pad));
+  }
+  chunks.push(Buffer.alloc(1024));   // 结尾两个空块
+  return zlib.gzipSync(Buffer.concat(chunks));
+}
+
+function readBackupKeep() {
+  try {
+    const cfg = JSON.parse(fs.readFileSync(path.join(DATA_DIR, 'config.json'), 'utf8'));
+    return Math.max(1, Number(cfg.backupKeep) || 7);
+  } catch (e) { return 7; }
+}
+
+function runBackup() {
+  try {
+    fs.mkdirSync(BACKUP_DIR, { recursive: true });
+    const files = fs.readdirSync(DATA_DIR)
+      .filter(f => f.endsWith('.json'))
+      .map(f => {
+        const fp = path.join(DATA_DIR, f);
+        return { name: 'data/' + f, data: fs.readFileSync(fp), mtime: fs.statSync(fp).mtimeMs };
+      });
+    if (!files.length) return console.log('[backup] data/ 为空, 跳过');
+    const gz = tarGzip(files);
+    const file = path.join(BACKUP_DIR, `z-dash-backup-${stampStr(new Date())}.tar.gz`);
+    fs.writeFileSync(file, gz);
+    console.log(`[backup] 已备份 -> ${path.basename(file)} (${(gz.length / 1024).toFixed(1)} KB, ${files.length} 个文件)`);
+
+    // 超出保留数时删最旧
+    const keep = readBackupKeep();
+    const olds = fs.readdirSync(BACKUP_DIR)
+      .filter(f => /^z-dash-backup-.*\.tar\.gz$/.test(f))
+      .sort();
+    while (olds.length > keep) {
+      const del = olds.shift();
+      fs.unlinkSync(path.join(BACKUP_DIR, del));
+      console.log(`[backup] 超出保留数 ${keep}, 删除最旧: ${del}`);
+    }
+  } catch (e) {
+    console.error('[backup] 备份失败:', e.message);
+  }
+}
+
+// 计算到下一次 00:01 的毫秒数并调度
+function scheduleBackup() {
+  const now = new Date();
+  const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 1, 0, 0);
+  setTimeout(() => { runBackup(); scheduleBackup(); }, next - now);
+  console.log(`[backup] 下次备份: ${pad2(next.getMonth() + 1)}-${pad2(next.getDate())} 00:01`);
+}
+
+// 手动立即备份:  node server.js --backup-now
+if (process.argv.includes('--backup-now')) {
+  runBackup();
+  process.exit(0);
+}
+
 /* ---------- 服务器 ---------- */
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://localhost');
@@ -171,4 +259,5 @@ const PORT = Number(process.argv[2]) || 8000;
 server.listen(PORT, () => {
   console.log(`Z-DASH server  ->  http://localhost:${PORT}/`);
   console.log(`data dir       ->  ${DATA_DIR}`);
+  scheduleBackup();
 });

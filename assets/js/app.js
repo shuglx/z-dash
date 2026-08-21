@@ -73,6 +73,23 @@ function applyConfig() {
   document.getElementById('themeBtn').onclick = toggleTheme;
   document.getElementById('themeBtnM').onclick = toggleTheme;
 
+  // 帮助按钮：快捷键与用法说明
+  const helpBtn = document.getElementById('helpBtn');
+  if (helpBtn) helpBtn.onclick = () => ui.view('HELP · 快捷键与用法', [
+    { k: '快捷键', v: '' },
+    { k: '  1 - 9', v: '切换页面（统计/待办/归档/周报/工具/链接）' },
+    { k: '  N', v: '新建任务 / 条目' },
+    { k: '  E', v: '编辑或查看鼠标 hover 的项' },
+    { k: '  Esc', v: '关闭当前弹层' },
+    { k: '待办事项', v: '' },
+    { k: '  拖拽', v: '卡片拖到其他列切换状态' },
+    { k: '  ← →', v: '卡片上的箭头按钮快捷切换状态' },
+    { k: '  ARCHIVE', v: '已完成 TASK 归档进历史，联动 XP 升级和声望系统' },
+    { k: '其他', v: '' },
+    { k: '  桌宠', v: '点击有回应，可拖动；侧边栏「桌宠 开/关」切换' },
+    { k: '  主题', v: '侧边栏「亮/暗切换」按钮' }
+  ]);
+
   // 桌宠开关按钮（状态读写 config, applyConfig 里统一初始化）
   ['petBtn', 'petBtnM'].forEach(id => {
     const b = document.getElementById(id);
