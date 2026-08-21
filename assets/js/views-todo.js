@@ -77,7 +77,7 @@ const todoView = {
     return `
       <div class="task ${t.status} ${pcls}" draggable="true" data-id="${t.id}">
         <div class="t-row">
-          <div class="t">${tag ? `<span class="tagx">[${ui.esc(tag)}]</span>` : ''}${ui.esc(title)}</div>
+          ${tag ? `<span class="tagx">[${ui.esc(tag)}]</span>` : ''}<div class="t">${ui.esc(title)}</div>
           ${t.status === 'done' ? '<button class="btn arch" data-act="arch" title="归档进历史">ARCHIVE</button>' : ''}
         </div>
         ${t.desc ? `<div class="desc">${ui.esc(t.desc)}</div>` : ''}

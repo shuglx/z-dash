@@ -293,7 +293,7 @@ html[data-theme="light"] input[type="date"].ipt{color-scheme:light}
 .task .date{color:var(--amber)}
 .task .date.due{font-weight:700;text-shadow:var(--glowA)}
 .task .proj{border:1px solid var(--cyan);padding:0 4px;color:var(--cyan)}
-.task.done .t{color:var(--txt-dim);text-decoration:line-through;text-decoration-color:var(--cyan-dim)}
+.task.done .t{color:var(--acc);text-decoration:line-through;text-decoration-color:var(--acc)}
 .col.drag-over{border-color:var(--cyan);box-shadow:inset 0 0 24px rgba(0,240,200,.08)}
 .col.drag-over .col-h{color:var(--cyan)}
 .hint{font-size:11px;color:var(--txt-dim);margin-top:10px}
