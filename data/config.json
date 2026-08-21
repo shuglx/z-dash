@@ -2,5 +2,6 @@
   "version": 1,
   "theme": "dark",
   "pet": true,
-  "xpSince": "2026-08-21"
+  "xpSince": "2026-08-21",
+  "backupKeep" : 15
 }
