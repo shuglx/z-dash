@@ -35,6 +35,12 @@
       "icon": "icon.png",
       "maintainer": "Ryan <z-dash@localhost>",
       "artifactName": "z-dash_${version}_${arch}.deb"
+    },
+    "win": {
+      "target": [
+        { "target": "portable", "arch": ["x64"] }
+      ],
+      "icon": "icon.png"
     }
   }
 }

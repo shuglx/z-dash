@@ -1,4 +1,4 @@
-name: Desktop deb (linux arm64)
+name: Desktop build (linux arm64 deb + windows x64 portable)
 
 on:
   workflow_dispatch:
@@ -6,10 +6,10 @@ on:
     tags: ['v*']
 
 permissions:
-  contents: write   # 打 tag 时创建 Release 并上传 deb
+  contents: write   # 打 tag 时创建 Release 并上传安装包
 
 jobs:
-  build-deb-arm64:
+  build-linux-deb-arm64:
     runs-on: ubuntu-latest   # x64 runner 交叉打包 arm64; 公共仓库可改用 ubuntu-24.04-arm 原生构建
     steps:
       - uses: actions/checkout@v4
@@ -36,9 +36,52 @@ jobs:
           path: build/stage/dist/*.deb
           if-no-files-found: error
 
-      # 打 tag (v*) 时自动创建 Release 并附上 deb
+  build-windows-portable-x64:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Assemble stage
+        run: node build/prepare.mjs
+
+      - name: Install deps
+        working-directory: build/stage
+        run: npm install --no-fund --no-audit
+
+      - name: Build portable exe (x64)
+        working-directory: build/stage
+        run: npx electron-builder --win portable --x64 --publish never
+
+      # portable 目标固定输出 "Z-DASH <version>.exe", 统一改名带平台标识
+      - name: Normalize artifact name
+        working-directory: build/stage/dist
+        shell: pwsh
+        run: Get-ChildItem 'Z-DASH *.exe' | Rename-Item -NewName { $_.Name -replace '^Z-DASH ([\d.]+)\.exe$', 'z-dash_$1_x64_portable.exe' }
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: z-dash-win-x64-portable
+          path: build/stage/dist/*.exe
+          if-no-files-found: error
+
+  # 打 tag (v*) 时自动创建 Release 并附上全部平台的安装包
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [build-linux-deb-arm64, build-windows-portable-x64]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
       - name: Attach to Release
-        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: build/stage/dist/*.deb
+          files: dist/*
