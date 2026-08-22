@@ -1,0 +1,44 @@
+name: Desktop deb (linux arm64)
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write   # 打 tag 时创建 Release 并上传 deb
+
+jobs:
+  build-deb-arm64:
+    runs-on: ubuntu-latest   # x64 runner 交叉打包 arm64; 公共仓库可改用 ubuntu-24.04-arm 原生构建
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Assemble stage
+        run: node build/prepare.mjs
+
+      - name: Install deps
+        working-directory: build/stage
+        run: npm install --no-fund --no-audit
+
+      - name: Build deb (arm64)
+        working-directory: build/stage
+        run: npx electron-builder --linux deb --arm64 --publish never
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: z-dash-deb-arm64
+          path: build/stage/dist/*.deb
+          if-no-files-found: error
+
+      # 打 tag (v*) 时自动创建 Release 并附上 deb
+      - name: Attach to Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/stage/dist/*.deb

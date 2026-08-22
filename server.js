@@ -16,7 +16,9 @@ const os = require('os');
 const zlib = require('zlib');
 
 const ROOT = __dirname;
-const DATA_DIR = path.join(ROOT, 'data');
+// 桌面版(Electron)通过环境变量 ZD_DATA_ROOT 把可写数据目录指向用户主目录; web 模式不受影响
+const DATA_BASE = process.env.ZD_DATA_ROOT || ROOT;
+const DATA_DIR = path.join(DATA_BASE, 'data');
 const KEYS = new Set(['todos', 'archive', 'weekly', 'links', 'config']);
 
 const MIME = {
@@ -108,7 +110,7 @@ setInterval(() => {
 
 /* ---------- 自动备份：每天 00:01 打包 data/ -> data_backup/*.tar.gz ----------
    程序运行中才触发（错过不补跑）; 保留数读 config.json 的 backupKeep（默认 7） */
-const BACKUP_DIR = path.join(ROOT, 'data_backup');
+const BACKUP_DIR = path.join(DATA_BASE, 'data_backup');
 const pad2 = n => String(n).padStart(2, '0');
 const stampStr = d => `${d.getFullYear()}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}-${pad2(d.getHours())}${pad2(d.getMinutes())}${pad2(d.getSeconds())}`;
 
@@ -209,7 +211,8 @@ const server = http.createServer((req, res) => {
     };
     const done = () => sendJson(res, 200, body);
     if (typeof fs.statfs === 'function') {
-      fs.statfs(ROOT, (err, st) => {
+      // 磁盘采样跟随数据目录(桌面版数据在用户主目录); web 模式与原行为一致
+      fs.statfs(fs.existsSync(DATA_DIR) ? DATA_DIR : ROOT, (err, st) => {
         if (!err && st && st.blocks > 0) {
           const used = st.blocks - st.bfree;
           body.disk = {
@@ -257,6 +260,7 @@ const server = http.createServer((req, res) => {
 
 const PORT = Number(process.argv[2]) || 8000;
 server.listen(PORT, () => {
+  fs.mkdirSync(DATA_DIR, { recursive: true });   // 桌面版: 数据目录可能尚不存在; web 模式为空操作
   console.log(`Z-DASH server  ->  http://localhost:${PORT}/`);
   console.log(`data dir       ->  ${DATA_DIR}`);
   scheduleBackup();

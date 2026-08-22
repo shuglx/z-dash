@@ -1,0 +1,39 @@
+{
+  "name": "z-dash",
+  "version": "1.0.0",
+  "description": "Z-DASH — 程序员个人工作台 (桌面版)",
+  "main": "main.js",
+  "author": "Ryan",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --linux deb --arm64"
+  },
+  "devDependencies": {
+    "electron": "^34.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "local.ryan.zdash",
+    "productName": "Z-DASH",
+    "asar": true,
+    "files": [
+      "main.js",
+      "server.js",
+      "index.html",
+      "assets/**/*"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "linux": {
+      "target": [
+        { "target": "deb", "arch": ["arm64"] }
+      ],
+      "category": "Utility",
+      "icon": "icon.png",
+      "maintainer": "Ryan <z-dash@localhost>",
+      "artifactName": "z-dash_${version}_${arch}.deb"
+    }
+  }
+}
