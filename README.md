@@ -152,9 +152,9 @@ Node 需要 18.20.8+（零第三方依赖）。
 
 右下角常驻透明动画桌宠（移植自开源项目 [dsh-pet](https://github.com/PC2005-cloud/dsh-pet)，MIT 协议，原为 DeepSeek Harness 插件，此处移植为原生 JS）：
 
-- 51 个透明 webm 动画（`assets/pet/`）：待机呼吸、写代码、小提琴、三支舞、四季动作……
+- 透明 webm 动画（`assets/pet/`）：待机呼吸、写代码、小提琴、三支舞、四季动作……新增动作只需把素材放进 `assets/pet/` 并在 `assets/js/pet.js` 的 `ACTS` / `CLICKS` 等池中登记动画名即可
 - 永不停止的动画链：每段播完按概率选下一个（30% 待机 / 10% 转向 / 40% 动作 / 20% 漫游移动）
-- 点击有随机回应（开心 / 害羞 / 傲娇）；按住拖动可放到任意位置
+- 点击有随机回应（开心 / 害羞 / 傲娇 / 元气挥手 / 挠痒）；按住拖动可放到任意位置
 - 双缓冲 video 交叉淡入，切换零空白帧；支持 `prefers-reduced-motion`
 - 侧边栏 / 移动端顶栏「桌宠」按钮开关，状态持久化到 `config.json`（默认开）
 
@@ -170,7 +170,7 @@ z-dash/
 │   └── start.bat            #   Windows
 ├── assets/
 │   ├── css/style.css        # 主题变量 + 全部样式
-│   ├── pet/                 # 桌宠透明动画（51 个 webm, ~35MB）
+│   ├── pet/                 # 桌宠透明动画（webm, 可随时增减）
 │   └── js/
 │       ├── seed.js          # 种子只读数据
 │       ├── store.js         # 数据层（GET/PUT /api/<key>）
