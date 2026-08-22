@@ -46,23 +46,24 @@ function findPort() {
   });
 }
 
-/* ---------- 首次启动: 预置 data/*.json ----------
-   前端 store.js 在所有 key 都 404 时会降级为只读种子模式, 因此空数据目录必须先落盘种子 */
+/* ---------- 首次启动: 写入空数据骨架 ----------
+   前端 store.js 在所有 key 都 404 时会降级为只读种子模式(编辑不落盘),
+   因此空白首启也必须先落盘空结构, 保证一打开就能正常增删改 */
 function seedData() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
   const existing = fs.readdirSync(DATA_DIR).filter(f => f.endsWith('.json'));
   if (existing.length) return;
-  let seed = null;
-  try {
-    global.window = {};
-    require(path.join(APP_ROOT, 'assets', 'js', 'seed.js'));
-    seed = global.window.SEED;
-  } catch (e) { console.warn('[desktop] seed.js 不可用, 使用空数据:', e.message); }
-  for (const k of ['todos', 'archive', 'weekly', 'links', 'config']) {
-    const body = seed && seed[k] ? seed[k] : { version: 1, items: [] };
-    fs.writeFileSync(path.join(DATA_DIR, k + '.json'), JSON.stringify(body, null, 2));
+  const empty = {
+    todos:   { version: 1, items: [] },
+    archive: { version: 1, items: [] },
+    weekly:  { version: 1, items: [] },
+    links:   { version: 1, groups: [], items: [] },
+    config:  { version: 1, theme: 'dark', pet: true },
+  };
+  for (const k of Object.keys(empty)) {
+    fs.writeFileSync(path.join(DATA_DIR, k + '.json'), JSON.stringify(empty[k], null, 2));
   }
-  console.log('[desktop] 首次启动, 已写入种子数据 ->', DATA_DIR);
+  console.log('[desktop] 首次启动, 已写入空数据 ->', DATA_DIR);
 }
 
 /* ---------- 启动内嵌 server.js (ZD_DATA_ROOT 指向用户数据目录) ---------- */

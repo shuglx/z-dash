@@ -6,7 +6,7 @@ const TABS = ['stats', 'todo', 'archive', 'weekly', 'tools', 'links'];
 
 function route() {
   let h = location.hash.replace(/^#\/?/, '');
-  if (!TABS.includes(h)) h = 'todo';
+  if (!TABS.includes(h)) h = 'stats';   // 默认落在 01 数据统计
   TABS.forEach(t => {
     const el = document.getElementById('view-' + t);
     if (el) el.hidden = t !== h;
@@ -110,7 +110,7 @@ function applyConfig() {
   });
   const curTab = () => {
     const h = location.hash.replace(/^#\/?/, '');
-    return TABS.includes(h) ? h : 'todo';
+    return TABS.includes(h) ? h : 'stats';
   };
   const editHovered = () => {
     // hover 元素可能已随视图切换失效（隐藏视图中的旧元素）
