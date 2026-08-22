@@ -4,3 +4,4 @@ node_modules/
 data_backup/
 extra/
 build/stage/
+build/.ico-parts/

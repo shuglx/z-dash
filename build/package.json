@@ -1,6 +1,6 @@
 {
   "name": "z-dash",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Z-DASH — 程序员个人工作台 (桌面版)",
   "homepage": "https://github.com/shuglx/z-dash",
   "main": "main.js",
@@ -22,7 +22,9 @@
       "main.js",
       "server.js",
       "index.html",
-      "assets/**/*"
+      "assets/**/*",
+      "icon.png",
+      "icon.ico"
     ],
     "directories": {
       "output": "dist"
@@ -40,7 +42,7 @@
       "target": [
         { "target": "portable", "arch": ["x64"] }
       ],
-      "icon": "icon.png"
+      "icon": "icon.ico"
     }
   }
 }
