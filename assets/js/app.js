@@ -73,22 +73,35 @@ function applyConfig() {
   document.getElementById('themeBtn').onclick = toggleTheme;
   document.getElementById('themeBtnM').onclick = toggleTheme;
 
-  // 帮助按钮：快捷键与用法说明
+  // 帮助按钮：快捷键与用法说明（桌面版 W/S 快捷键仅桌面生效, 文案随之区分）
+  const helpRows = () => {
+    const rows = [
+      { k: '快捷键', v: '' },
+      { k: '  1 - 9', v: '切换页面（统计/待办/归档/周报/工具/链接）' },
+      { k: '  Q', v: '打开本帮助' },
+      { k: '  A', v: '新增任务（待办页）' },
+    ];
+    if (window.zdDesktop) {
+      rows.push({ k: '  W', v: '显示 / 隐藏侧边栏' });
+      rows.push({ k: '  S', v: '搜索待办与归档' });
+    }
+    rows.push(
+      { k: '  E', v: '编辑或查看鼠标 hover 的项' },
+      { k: '  Esc', v: '关闭当前弹层' },
+      { k: '待办事项', v: '' },
+      { k: '  拖拽', v: '卡片拖到其他列切换状态' },
+      { k: '  ← →', v: '卡片上的箭头按钮快捷切换状态' },
+      { k: '  ARCHIVE', v: '已完成 TASK 归档进历史，联动 XP 升级和声望系统' },
+      { k: '其他', v: '' },
+      { k: '  桌宠', v: '点击有回应，可拖动；侧边栏「桌宠 开/关」切换' },
+      { k: '  主题', v: '侧边栏「亮/暗切换」按钮' }
+    );
+    return rows;
+  };
+  const showHelp = () => ui.view('HELP · 快捷键与用法', helpRows());
   const helpBtn = document.getElementById('helpBtn');
-  if (helpBtn) helpBtn.onclick = () => ui.view('HELP · 快捷键与用法', [
-    { k: '快捷键', v: '' },
-    { k: '  1 - 9', v: '切换页面（统计/待办/归档/周报/工具/链接）' },
-    { k: '  N', v: '新建任务 / 条目' },
-    { k: '  E', v: '编辑或查看鼠标 hover 的项' },
-    { k: '  Esc', v: '关闭当前弹层' },
-    { k: '待办事项', v: '' },
-    { k: '  拖拽', v: '卡片拖到其他列切换状态' },
-    { k: '  ← →', v: '卡片上的箭头按钮快捷切换状态' },
-    { k: '  ARCHIVE', v: '已完成 TASK 归档进历史，联动 XP 升级和声望系统' },
-    { k: '其他', v: '' },
-    { k: '  桌宠', v: '点击有回应，可拖动；侧边栏「桌宠 开/关」切换' },
-    { k: '  主题', v: '侧边栏「亮/暗切换」按钮' }
-  ]);
+  if (helpBtn) helpBtn.onclick = showHelp;
+  window.__zdShowHelp = showHelp;   // 桌面版标题栏 ? 按钮 / Q 键共用
 
   // 桌宠开关按钮（状态读写 config, applyConfig 里统一初始化）
   ['petBtn', 'petBtnM'].forEach(id => {
@@ -101,7 +114,8 @@ function applyConfig() {
     };
   });
 
-  // 快捷键：数字 1-9 切页 · E 编辑/查看鼠标 hover 项 · N 新建任务
+  // 快捷键：数字 1-9 切页 · E 编辑/查看鼠标 hover 项 · Q 帮助 · A 新增任务
+  //   桌面版另有 W 侧边栏 / S 搜索（在 desktop.js 里绑定）
   // （均要求：无弹层 & 焦点不在输入控件上 & 无修饰键）
   let hovEl = null;   // 最近 hover 的可操作项（任务卡/归档行/链接卡/周块）
   document.addEventListener('mouseover', e => {
@@ -144,8 +158,10 @@ function applyConfig() {
     }
     // E → 编辑/查看当前 hover 项
     if (e.key === 'e' || e.key === 'E') return editHovered();
-    // N → 新建任务（仅待办页）
-    if (e.key === 'n' || e.key === 'N') {
+    // Q → 帮助
+    if (e.key === 'q' || e.key === 'Q') return showHelp();
+    // A → 新增任务（仅待办页; 原 N 键）
+    if (e.key === 'a' || e.key === 'A') {
       if (curTab() === 'todo') todoView.editModal(null);
     }
   });

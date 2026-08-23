@@ -148,6 +148,8 @@ button{font-family:var(--mono)}
   background:var(--bg-1);backdrop-filter:blur(4px);
   padding:20px 14px;display:flex;flex-direction:column;gap:6px;
   position:sticky;top:0;height:100vh;
+  overflow:hidden;white-space:nowrap;   /* 桌面版收拢动画: 内容不换行, 超出裁剪 */
+  transition:width .22s ease,padding .22s ease,border-color .22s ease;
 }
 .brand{font-size:17px;font-weight:700;letter-spacing:2px;color:var(--cyan);
   text-shadow:var(--glowC);padding:4px 8px 12px;white-space:nowrap;
@@ -791,3 +793,71 @@ html[data-zd-theme="light"] .tip{box-shadow:0 2px 10px rgba(35,47,61,.2)}
   .kpi-grid{grid-template-columns:repeat(2,1fr)}
   .stat-grid{grid-template-columns:1fr}
 }
+
+/* ============================================================
+   桌面版(Electron) 自绘标题栏 — preload 注入 [data-zd-desktop] 激活
+   web 版无此标记, 以下规则全部不生效
+   ============================================================ */
+.titlebar{display:none}
+[data-zd-desktop] .titlebar{
+  position:fixed;top:0;left:0;right:0;height:36px;z-index:150;
+  display:flex;align-items:stretch;
+  background:var(--bg-1);backdrop-filter:blur(4px);
+  -webkit-app-region:drag;user-select:none;
+}
+/* 内容整体下移, 侧栏吸附位置跟随标题栏高度 */
+[data-zd-desktop] .layout{padding-top:36px}
+[data-zd-desktop] .side{top:36px;height:calc(100vh - 36px)}
+/* 左区: 与侧边栏同底色 + 延续侧栏右边线, 不设下线(与菜单栏浑然一体)
+   隐藏侧栏时宽度过渡到内容宽(134px = padding18 + logo20 + gap6 + 按钮组90) */
+.tb-zone{
+  width:254px;flex:none;display:flex;align-items:center;gap:6px;
+  padding:0 10px 0 14px;border-right:1px solid var(--line);
+  overflow:hidden;white-space:nowrap;
+  transition:width .22s ease,padding .22s ease,border-color .22s ease;
+}
+.tb-logo{width:20px;height:20px;flex:none;display:block}
+/* 功能按钮组: 靠左区右端(与侧栏右边线对齐) */
+.tb-fns{margin-left:auto;display:flex;gap:6px}
+/* 桌面版: 侧栏 brand 里的 ? 帮助按钮移至标题栏, 侧栏内不再显示 */
+[data-zd-desktop] .help-btn{display:none}
+/* 右区: 覆盖主内容上方, 下边线与主区分隔 */
+.tb-main{flex:1;display:flex;align-items:center;justify-content:flex-end;
+  gap:2px;padding:0 8px;border-bottom:1px solid var(--line)}
+.tb-btn,.tb-ctl{-webkit-app-region:no-drag;cursor:pointer;background:none;
+  color:var(--txt-dim);border:1px solid var(--line-hi);
+  font-family:var(--mono);line-height:1}
+.tb-btn{width:26px;height:22px;font-size:12px;flex:none;display:flex;align-items:center;justify-content:center}
+.tb-btn:hover{color:var(--cyan);border-color:var(--cyan);
+  box-shadow:0 0 6px color-mix(in srgb,var(--cyan) 40%,transparent)}
+/* 侧栏开关图标: 方框 + 靠左竖线(VS Code / Trae 同款语义) */
+.ic-side{width:12px;height:12px;flex:none;display:block;position:relative;
+  border:1px solid currentColor;
+  clip-path:polygon(0 0,100% 0,100% 100%,0 100%)}
+.ic-side::before{content:"";position:absolute;left:2px;top:2px;bottom:2px;width:2.5px;
+  background:currentColor}
+/* 隐藏态(侧栏已藏): 竖线靠右, 语义反转提示可展开 */
+.tb-btn.folded .ic-side::before{left:auto;right:2px}
+.tb-ctl{width:32px;height:24px;font-size:13px;flex:none;border-color:transparent}
+.tb-ctl:hover{color:var(--cyan);background:color-mix(in srgb,var(--cyan) 10%,transparent)}
+.tb-ctl.close:hover{color:#fff;background:var(--magenta);border-color:var(--magenta);
+  box-shadow:0 0 8px color-mix(in srgb,var(--magenta) 50%,transparent)}
+
+/* ---------- 侧栏隐藏态(仅桌面): 宽度收到 0, 主区占满(带过渡动效) ---------- */
+[data-zd-desktop][data-zd-side="fold"] .side{
+  width:0;padding:20px 0;border-right-color:transparent;
+}
+[data-zd-desktop][data-zd-side="fold"] .tb-zone{width:134px;padding:0 6px 0 12px;border-right-color:transparent}
+
+/* ---------- 搜索弹层（待办 + 归档 全局搜索, 仅桌面版入口） ---------- */
+.sch-bar{display:flex;gap:8px;margin-bottom:10px}
+.sch-bar .ipt{flex:1}
+.sch-list{max-height:320px;overflow-y:auto;scrollbar-width:thin}
+.sch-group{font-size:10px;color:var(--txt-dim);letter-spacing:2px;margin:8px 0 4px}
+.sch-row{display:flex;gap:8px;align-items:center;padding:6px 8px;margin-bottom:4px;
+  border:1px solid var(--line);cursor:pointer;transition:border-color .12s}
+.sch-row:hover{border-color:var(--cyan);background:color-mix(in srgb,var(--cyan) 6%,transparent)}
+.sch-row .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sch-row .m{font-size:10px;color:var(--txt-dim);flex:none;letter-spacing:1px}
+.sch-empty{color:var(--txt-dim);padding:10px 0;letter-spacing:1px}
+.sch-hint{font-size:10px;color:var(--txt-dim);letter-spacing:1px;margin-right:auto;align-self:center}

@@ -6,7 +6,7 @@
    ============================================================ */
 'use strict';
 
-const { app, BrowserWindow, Menu, utilityProcess } = require('electron');
+const { app, BrowserWindow, Menu, utilityProcess, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const net = require('net');
@@ -107,16 +107,28 @@ async function boot() {
     await waitServer(port);
     win = new BrowserWindow({
       width: 1480,
-      height: 920,
+      height: 1060,   // 初始高度加大 ~15%: 常见屏幕打开即全内容可见, 无垂直滚动条
       minWidth: 1024,
       minHeight: 640,
       backgroundColor: '#090c13',     // 与暗色主题背景一致, 防白闪
       title: 'Z-DASH',
       show: false,
+      frame: false,                   // 无边框: 标题栏由前端自绘(拖拽区+窗口按钮)
       autoHideMenuBar: true,
       icon: path.join(APP_ROOT, 'icon.png'),   // 窗口/任务栏图标(Linux WM 需要)
+      webPreferences: {
+        preload: path.join(APP_ROOT, 'preload.js'),
+      },
     });
     win.on('closed', () => { win = null; });
+
+    /* ---------- 自绘标题栏的窗口控制 IPC ---------- */
+    ipcMain.on('zd:win-min', () => { if (win) win.minimize(); });
+    ipcMain.on('zd:win-max', () => { if (!win) return; win.isMaximized() ? win.unmaximize() : win.maximize(); });
+    ipcMain.on('zd:win-close', () => { if (win) win.close(); });
+    ipcMain.handle('zd:win-is-max', () => !!win && win.isMaximized());
+    win.on('maximize', () => win.webContents.send('zd:max-changed', true));
+    win.on('unmaximize', () => win.webContents.send('zd:max-changed', false));
     await win.loadURL('http://127.0.0.1:' + port + '/');
     // Windows 下任务栏图标取自 exe 内嵌资源(开发模式即 electron.exe 官方图标),
     // 构造参数 icon 会被忽略, 需运行时 setIcon 覆盖; Linux 打包版由 desktop entry 提供图标

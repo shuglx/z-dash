@@ -17,7 +17,7 @@ const stage = path.join(buildDir, 'stage');
 rmSync(stage, { recursive: true, force: true });
 mkdirSync(stage, { recursive: true });
 
-for (const f of ['main.js', 'package.json', 'icon.png', 'icon.ico']) {
+for (const f of ['main.js', 'preload.js', 'package.json', 'icon.png', 'icon.ico']) {
   cpSync(path.join(buildDir, f), path.join(stage, f));
 }
 for (const f of ['server.js', 'index.html']) {
