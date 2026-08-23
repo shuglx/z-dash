@@ -849,11 +849,12 @@ html[data-zd-theme="light"] .tip{box-shadow:0 2px 10px rgba(35,47,61,.2)}
 .tb-ctl:hover{color:var(--cyan);background:color-mix(in srgb,var(--cyan) 10%,transparent)}
 .tb-ctl.close:hover{color:#fff;background:var(--magenta);border-color:var(--magenta);
   box-shadow:0 0 8px color-mix(in srgb,var(--magenta) 50%,transparent)}
-/* 钉在最前: 图钉图标(旋转45°的针头+针脚), 激活时青色高亮 */
-.ic-pin{width:12px;height:12px;flex:none;display:block;position:relative;transform:rotate(45deg)}
-.ic-pin::before{content:"";position:absolute;top:0;left:2.5px;width:7px;height:7px;border:1.5px solid currentColor}
-.ic-pin::after{content:"";position:absolute;top:8.5px;left:5.5px;width:1.5px;height:3.5px;background:currentColor}
-#tbTopBtn.on{color:var(--cyan);border-color:var(--cyan-dim);
+/* 置顶: 📌 图钉 — 未置顶横放(旋平), 置顶后斜插(emoji 默认斜向); 按钮用 flex 居中图标 */
+#tbTopBtn{display:flex;align-items:center;justify-content:center}
+.ic-pin{font-size:14px;line-height:1;display:inline-block;
+  transform:rotate(45deg);transition:transform .18s ease}
+#tbTopBtn.on .ic-pin{transform:rotate(0);filter:drop-shadow(0 0 4px var(--cyan))}
+#tbTopBtn.on{border-color:var(--cyan-dim);
   box-shadow:0 0 8px color-mix(in srgb,var(--cyan) 35%,transparent)}
 
 /* ---------- 侧栏隐藏态(仅桌面): 宽度收到 0, 主区占满(带过渡动效) ---------- */

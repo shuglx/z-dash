@@ -1,7 +1,7 @@
 /* ============================================================
    Z-DASH desktop — Electron 桌面版增强（web 版自动跳过）
    依赖 preload 注入的 window.zdDesktop 与 <html data-zd-desktop> 标记
-   1) 自绘标题栏: 窗口控制(最小化/最大化/关闭) + 最大化状态同步 + 钉在最前
+   1) 自绘标题栏: 窗口控制(最小化/最大化/关闭) + 最大化状态同步 + 置顶
    2) 侧边栏折叠/展开（localStorage['zd-side'] 记忆）
    3) 全局搜索: 待办 + 归档（标题/描述/项目）, 点击跳转打开对应弹窗
    4) 托盘联动: 托盘菜单切换主题/桌宠 → 复用页面按钮; 状态回推刷新托盘勾选
@@ -20,7 +20,7 @@
   zdDesktop.isMaximized().then(setMaxIcon);
   zdDesktop.onMaximizeChanged(setMaxIcon);
 
-  /* ---------- 钉在最前（标题栏按钮, 与托盘菜单双向同步） ---------- */
+  /* ---------- 置顶（标题栏按钮, 与托盘菜单双向同步; 图标横放/斜放由 CSS .on 切换） ---------- */
   const topBtn = $('tbTopBtn');
   const setTopIcon = on => { topBtn.classList.toggle('on', !!on); };
   topBtn.onclick = () => zdDesktop.toggleTop();

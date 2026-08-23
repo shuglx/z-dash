@@ -118,15 +118,22 @@ function showWin() {
 function refreshTray() { if (tray) tray.setContextMenu(buildTrayMenu()); }
 
 function buildTrayMenu() {
-  // 开关项: label 直接带「开/关」状态（checkbox 勾选在部分 Linux 桌面托盘渲染不明显）,
-  // 点击 → 执行切换 → refreshTray() 按真实状态重建菜单; 退出/显示窗口为普通动作按钮
-  const sw = on => on ? '开' : '关';
+  // 开关项用 checkbox（开启打钩）/ 桌宠选择用 radio 子菜单（互斥选中）,
+  // 点击 → 执行切换 → refreshTray() 按真实状态重建菜单; 退出为普通动作按钮
+  const petOn = !!uiState.pet;
   return Menu.buildFromTemplate([
-    { label: '显示主窗口', click: () => showWin() },
-    { type: 'separator' },
-    { label: `钉在最前 · ${sw(!!win && win.isAlwaysOnTop())}`, click: () => setTop(!win.isAlwaysOnTop()) },
-    { label: `亮色模式 · ${sw(uiState.theme === 'light')}`, click: () => win && win.webContents.send('zd:tray-toggle', 'theme') },
-    { label: `桌宠 · ${sw(!!uiState.pet)}`, click: () => win && win.webContents.send('zd:tray-toggle', 'pet') },
+    { label: '显示窗口', type: 'checkbox', checked: !!win && win.isVisible() && !win.isMinimized(),
+      click: () => { showWin(); refreshTray(); } },
+    { label: '开启置顶', type: 'checkbox', checked: !!win && win.isAlwaysOnTop(),
+      click: () => setTop(!win.isAlwaysOnTop()) },
+    { label: '暗色模式', type: 'checkbox', checked: uiState.theme !== 'light',
+      click: () => win && win.webContents.send('zd:tray-toggle', 'theme') },
+    { label: '桌宠选择', submenu: [
+      { label: '鲸鱼娘', type: 'radio', checked: petOn,
+        click: () => { if (!petOn) win && win.webContents.send('zd:tray-toggle', 'pet'); } },
+      { label: '关闭', type: 'radio', checked: !petOn,
+        click: () => { if (petOn) win && win.webContents.send('zd:tray-toggle', 'pet'); } },
+    ] },
     { type: 'separator' },
     { label: '退出', click: () => app.quit() }
   ]);
@@ -173,6 +180,8 @@ async function boot() {
     ipcMain.handle('zd:win-is-max', () => !!win && win.isMaximized());
     win.on('maximize', () => win.webContents.send('zd:max-changed', true));
     win.on('unmaximize', () => win.webContents.send('zd:max-changed', false));
+    /* 窗口显隐变化 → 刷新托盘菜单「显示窗口」勾选态 */
+    ['show', 'hide', 'minimize', 'restore'].forEach(ev => win.on(ev, () => refreshTray()));
 
     /* ---------- 置顶开关 IPC（标题栏按钮 / 托盘菜单共用 setTop） ---------- */
     ipcMain.on('zd:win-top', () => { if (win) setTop(!win.isAlwaysOnTop()); });
