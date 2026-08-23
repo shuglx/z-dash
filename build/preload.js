@@ -23,5 +23,21 @@ contextBridge.exposeInMainWorld('zdDesktop', {
   onMaximizeChanged: cb => {
     const h = (_e, v) => cb(v);
     ipcRenderer.on('zd:max-changed', h);
+  },
+  // 置顶开关（标题栏按钮 / 托盘菜单共用）
+  toggleTop: () => ipcRenderer.send('zd:win-top'),
+  isAlwaysOnTop: () => ipcRenderer.invoke('zd:win-is-top'),
+  onTopChanged: cb => {
+    const h = (_e, v) => cb(v);
+    ipcRenderer.on('zd:top-changed', h);
+  },
+  // 链接 → 系统默认程序打开（浏览器/文件管理器）
+  openExternal: url => ipcRenderer.send('zd:open-external', url),
+  // 主题/桌宠状态回推（托盘菜单勾选）
+  uiState: s => ipcRenderer.send('zd:ui-state', s),
+  // 托盘菜单切换主题/桌宠 → 通知渲染进程（复用页面按钮逻辑）
+  onTrayToggle: cb => {
+    const h = (_e, kind) => cb(kind);
+    ipcRenderer.on('zd:tray-toggle', h);
   }
 });

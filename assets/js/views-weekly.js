@@ -118,7 +118,7 @@ const weeklyView = {
         <button type="button" class="btn ghost" data-x>CANCEL</button>
         <button type="button" class="btn warn" data-ok>COMMIT</button>
       </div>`);
-    ui._box.classList.add('wide');
+    ui._box.classList.add('xwide');
     const ta = ui._box.querySelector('.wk-ta');
 
     ui._box.querySelector('[data-x]').onclick = () => ui.close();

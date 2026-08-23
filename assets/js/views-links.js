@@ -52,6 +52,7 @@ const linksView = {
     document.getElementById('grpBox').innerHTML = html;
     const cnt = document.getElementById('lkCount');
     if (cnt) cnt.textContent = q ? `${items.length}/${d.items.length}` : d.items.length;
+    this.bindDnD();
   },
 
   grpHTML(g, items, ci = 0) {
@@ -70,15 +71,15 @@ const linksView = {
         </div>
         ${collapsed ? '' : `
         <div class="links">
-          ${items.map(i => this.cardHTML(i, ci)).join('')}
+          ${items.map(i => this.cardHTML(i, ci, !searching)).join('')}
           ${searching ? '' : `<div class="lk add" data-c="${ci}" data-act="newlink" data-gid="${g.id}"><span>+ NEW LINK</span></div>`}
         </div>`}
       </div>`;
   },
 
-  cardHTML(i, ci = 0) {
+  cardHTML(i, ci = 0, drag = false) {
     return `
-      <div class="lk" data-c="${ci}" data-id="${i.id}">
+      <div class="lk" ${drag ? 'draggable="true"' : ''} data-c="${ci}" data-id="${i.id}" ${drag ? 'title="拖拽可换组 / 调序"' : ''}>
         <div class="ic">${ui.esc(ui.initials(i.title))}</div>
         <div class="txt">
           <div class="n">${ui.esc(i.title)}</div>
@@ -89,6 +90,99 @@ const linksView = {
           <span class="op danger" data-act="del" data-id="${i.id}" title="删除">[del]</span>
         </div>
       </div>`;
+  },
+
+  /* ---------- 拖拽: 卡片拖到其他组或组内调序（搜索过滤时停用） ----------
+     组内顺序 = items 数组顺序; 落点在某卡左/右半侧 → 插到其前/后;
+     落在组空白区 / 组头（折叠组）→ 追加到该组末尾 */
+  bindDnD() {
+    const box = document.getElementById('grpBox');
+    if (!box) return;
+    const clearMarks = () => {
+      box.querySelectorAll('.drop-before,.drop-after,.drop-in').forEach(el =>
+        el.classList.remove('drop-before', 'drop-after', 'drop-in'));
+    };
+
+    box.querySelectorAll('.lk[data-id]').forEach(card => {
+      card.ondragstart = e => {
+        e.dataTransfer.setData('text/plain', card.dataset.id);
+        e.dataTransfer.effectAllowed = 'move';
+        card.classList.add('dragging');
+      };
+      card.ondragend = () => { card.classList.remove('dragging'); clearMarks(); };
+      card.ondragover = e => {
+        e.preventDefault(); e.stopPropagation();   // 卡片自身作为落点, 不再冒泡给组容器
+        e.dataTransfer.dropEffect = 'move';
+        box.querySelectorAll('.lk.drop-before,.lk.drop-after').forEach(el => {
+          if (el !== card) el.classList.remove('drop-before', 'drop-after');
+        });
+        const r = card.getBoundingClientRect();
+        card.classList.toggle('drop-before', e.clientX < r.left + r.width / 2);
+        card.classList.toggle('drop-after', e.clientX >= r.left + r.width / 2);
+      };
+      card.ondragleave = e => {
+        if (card.contains(e.relatedTarget)) return;   // 移入子元素不算离开
+        card.classList.remove('drop-before', 'drop-after');
+      };
+      card.ondrop = async e => {
+        e.preventDefault(); e.stopPropagation();
+        const side = card.classList.contains('drop-before') ? 'before' : 'after';
+        clearMarks();
+        await this.dropMove(e.dataTransfer.getData('text/plain'), card.dataset.id, side);
+      };
+    });
+
+    // 组内空白区 / + NEW LINK 磁贴: 追加到组末尾
+    box.querySelectorAll('.links').forEach(lnk => {
+      lnk.ondragover = e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; lnk.classList.add('drop-in'); };
+      lnk.ondragleave = e => { if (!lnk.contains(e.relatedTarget)) lnk.classList.remove('drop-in'); };
+      lnk.ondrop = async e => {
+        e.preventDefault();
+        lnk.classList.remove('drop-in');
+        clearMarks();
+        await this.dropAppend(e.dataTransfer.getData('text/plain'), lnk.closest('.grp').dataset.gid);
+      };
+    });
+
+    // 组头: 折叠组的唯一落点（也可用于展开组直接追加到末尾）
+    box.querySelectorAll('.grp-h').forEach(h => {
+      h.ondragover = e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; h.classList.add('drop-in'); };
+      h.ondragleave = e => { if (!h.contains(e.relatedTarget)) h.classList.remove('drop-in'); };
+      h.ondrop = async e => {
+        e.preventDefault();
+        h.classList.remove('drop-in');
+        clearMarks();
+        await this.dropAppend(e.dataTransfer.getData('text/plain'), h.closest('.grp').dataset.gid);
+      };
+    });
+  },
+
+  // 移动到某卡前/后（跨组时同步改 groupId）
+  async dropMove(id, targetId, side) {
+    const items = store.data.links.items;
+    const it = items.find(x => x.id === id);
+    const tgt = items.find(x => x.id === targetId);
+    if (!it || !tgt || it === tgt) return;
+    it.groupId = tgt.groupId;
+    items.splice(items.indexOf(it), 1);
+    const idx = items.indexOf(tgt);
+    items.splice(side === 'before' ? idx : idx + 1, 0, it);
+    await store.save('links');
+    this.updateGroups();
+  },
+
+  // 追加到某组末尾
+  async dropAppend(id, gid) {
+    const items = store.data.links.items;
+    const it = items.find(x => x.id === id);
+    if (!it || !store.data.links.groups.some(g => g.id === gid)) return;
+    it.groupId = gid;
+    items.splice(items.indexOf(it), 1);
+    let idx = -1;
+    items.forEach((x, i) => { if (x.groupId === gid) idx = i; });
+    items.splice(idx + 1, 0, it);
+    await store.save('links');
+    this.updateGroups();
   },
 
   groupOptions(cur) {
@@ -138,10 +232,14 @@ const linksView = {
       }
 
       // 2) 点击卡片主体 → 跳转
+      //    桌面端: shell.openExternal 走系统默认浏览器/文件管理器（smb:// 等协议才能正确触发）
       const card = e.target.closest('.lk');
       if (card && card.dataset.id && !card.classList.contains('add')) {
         const it = store.data.links.items.find(x => x.id === card.dataset.id);
-        if (it) window.open(it.url, '_blank', 'noopener');
+        if (it) {
+          if (window.zdDesktop) zdDesktop.openExternal(it.url);
+          else window.open(it.url, '_blank', 'noopener');
+        }
         return;
       }
 

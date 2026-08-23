@@ -14,8 +14,9 @@ const todoView = {
   // 各状态可移动到的目标 (左 ← / 右 →)
   moves: { todo: { to: 'doing' }, doing: { back: 'todo', to: 'done' }, done: { back: 'todo' } },
 
+  // [TAG] 与中文全角【TAG】均识别为标签
   parseTag(t) {
-    const m = /^\[([^\]]{1,10})\]\s*/.exec(t || '');
+    const m = /^[\[【]([^\]】]{1,10})[\]】]\s*/.exec(t || '');
     return m ? { tag: m[1], title: t.slice(m[0].length) } : { tag: null, title: t || '' };
   },
 
@@ -186,7 +187,7 @@ const todoView = {
     ui.formModal({
       title: isNew ? 'NEW TASK' : 'EDIT TASK',
       fields: [
-        { name: 'title', label: '标题（[TAG] 前缀会被高亮）', required: true, value: t ? t.title : '', placeholder: '例如 [BUG] 修复登录超时' },
+        { name: 'title', label: '标题（[TAG] 或 【TAG】 前缀会被高亮）', required: true, value: t ? t.title : '', placeholder: '例如 [BUG] 修复登录超时' },
         { name: 'status', label: '状态', type: 'select', value: t ? t.status : 'todo', options: [['todo', '未启动'], ['doing', '进行中'], ['done', '已完成']] },
         { name: 'priority', label: '优先级', type: 'select', value: t ? t.priority : 'P2', options: [['P0', 'P0 紧急'], ['P1', 'P1 重要'], ['P2', 'P2 普通']] },
         { name: 'project', label: '项目（可选，输入或选择已有）', type: 'combo', options: projects, value: t ? (t.project || '') : '', placeholder: 'infra / gateway / self ...' },

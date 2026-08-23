@@ -300,7 +300,7 @@ const xp = {
         <div class="tier-grid">${this.tiersHTML()}</div>
       </div>
       <div class="m-f"><button type="button" class="btn ghost" data-x>CLOSE</button></div>`);
-    ui._box.classList.add('wide');
+    ui._box.classList.add('xwide');
     // 注意: 画廊内 LEVEL UP 预览卡也含 [data-x], 用 :scope > .m-f 只绑弹层真实底部按钮
     const closeBtn = ui._box.querySelector(':scope > .m-f [data-x]');
     if (closeBtn) closeBtn.onclick = () => ui.close();

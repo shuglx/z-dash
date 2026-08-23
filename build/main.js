@@ -6,7 +6,7 @@
    ============================================================ */
 'use strict';
 
-const { app, BrowserWindow, Menu, utilityProcess, ipcMain } = require('electron');
+const { app, BrowserWindow, Menu, Tray, nativeImage, Notification, utilityProcess, ipcMain, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const net = require('net');
@@ -19,6 +19,8 @@ const BASE_PORT = 8390;                        // 固定起始端口: 保持 loc
 let win = null;
 let serverProc = null;
 let quitting = false;
+let tray = null;
+let uiState = { theme: 'dark', pet: true };   // 渲染进程同步来的主题/桌宠状态（托盘菜单勾选）
 
 /* ---------- 单实例: 重复启动时唤起已有窗口 ---------- */
 if (!app.requestSingleInstanceLock()) {
@@ -97,9 +99,51 @@ function waitServer(port, timeoutMs) {
   });
 }
 
+/* ---------- 置顶: 标题栏按钮 / 托盘菜单共用 ---------- */
+function setTop(on) {
+  if (!win) return;
+  win.setAlwaysOnTop(on);
+  win.webContents.send('zd:top-changed', on);
+  refreshTray();
+}
+
+/* ---------- 托盘 ---------- */
+function showWin() {
+  if (!win) return;
+  if (win.isMinimized()) win.restore();
+  win.show();
+  win.focus();
+}
+
+function refreshTray() { if (tray) tray.setContextMenu(buildTrayMenu()); }
+
+function buildTrayMenu() {
+  // 开关项: label 直接带「开/关」状态（checkbox 勾选在部分 Linux 桌面托盘渲染不明显）,
+  // 点击 → 执行切换 → refreshTray() 按真实状态重建菜单; 退出/显示窗口为普通动作按钮
+  const sw = on => on ? '开' : '关';
+  return Menu.buildFromTemplate([
+    { label: '显示主窗口', click: () => showWin() },
+    { type: 'separator' },
+    { label: `钉在最前 · ${sw(!!win && win.isAlwaysOnTop())}`, click: () => setTop(!win.isAlwaysOnTop()) },
+    { label: `亮色模式 · ${sw(uiState.theme === 'light')}`, click: () => win && win.webContents.send('zd:tray-toggle', 'theme') },
+    { label: `桌宠 · ${sw(!!uiState.pet)}`, click: () => win && win.webContents.send('zd:tray-toggle', 'pet') },
+    { type: 'separator' },
+    { label: '退出', click: () => app.quit() }
+  ]);
+}
+
+function createTray() {
+  const img = nativeImage.createFromPath(path.join(APP_ROOT, 'icon.png')).resize({ width: 22, height: 22 });
+  tray = new Tray(img);
+  tray.setToolTip('Z-DASH');
+  tray.setContextMenu(buildTrayMenu());
+  tray.on('click', () => showWin());   // 左键单击唤起窗口（右键弹菜单, Linux 部分桌面也把左键映射到菜单）
+}
+
 /* ---------- 主流程 ---------- */
 async function boot() {
   Menu.setApplicationMenu(null);
+  if (process.platform === 'win32') app.setAppUserModelId('local.ryan.zdash');   // Windows 通知身份
   try {
     seedData();
     const port = await findPort();
@@ -129,6 +173,35 @@ async function boot() {
     ipcMain.handle('zd:win-is-max', () => !!win && win.isMaximized());
     win.on('maximize', () => win.webContents.send('zd:max-changed', true));
     win.on('unmaximize', () => win.webContents.send('zd:max-changed', false));
+
+    /* ---------- 置顶开关 IPC（标题栏按钮 / 托盘菜单共用 setTop） ---------- */
+    ipcMain.on('zd:win-top', () => { if (win) setTop(!win.isAlwaysOnTop()); });
+    ipcMain.handle('zd:win-is-top', () => !!win && win.isAlwaysOnTop());
+
+    /* ---------- 链接用系统默认程序打开（浏览器/文件管理器, smb:// 等协议依赖此路径） ---------- */
+    ipcMain.on('zd:open-external', (_e, url) => {
+      if (typeof url === 'string' && /^[a-z][a-z0-9+.-]*:/i.test(url)) shell.openExternal(url);
+    });
+
+    /* ---------- 渲染进程回推主题/桌宠状态 → 刷新托盘菜单勾选 ---------- */
+    ipcMain.on('zd:ui-state', (_e, s) => {
+      if (!s || typeof s !== 'object') return;
+      if (s.theme === 'light' || s.theme === 'dark') uiState.theme = s.theme;
+      if (typeof s.pet === 'boolean') uiState.pet = s.pet;
+      refreshTray();
+    });
+
+    /* ---------- 关闭 → 隐藏到托盘（常驻）; 真正退出走托盘菜单/quit ---------- */
+    let trayNotified = false;
+    win.on('close', e => {
+      if (quitting) return;
+      e.preventDefault();
+      win.hide();
+      if (!trayNotified && Notification.isSupported()) {
+        trayNotified = true;   // 每次运行仅首次提示, 避免打扰
+        new Notification({ title: 'Z-DASH', body: '已最小化到托盘，右键托盘图标可退出' }).show();
+      }
+    });
     await win.loadURL('http://127.0.0.1:' + port + '/');
     // Windows 下任务栏图标取自 exe 内嵌资源(开发模式即 electron.exe 官方图标),
     // 构造参数 icon 会被忽略, 需运行时 setIcon 覆盖; Linux 打包版由 desktop entry 提供图标
@@ -136,6 +209,7 @@ async function boot() {
       try { win.setIcon(path.join(APP_ROOT, 'icon.png')); } catch (e) { /* 图标缺失不致命 */ }
     }
     win.show();
+    try { createTray(); } catch (e) { console.error('[desktop] 托盘创建失败:', e); }
   } catch (e) {
     console.error('[desktop] 启动失败:', e);
     const { dialog } = require('electron');
@@ -144,8 +218,10 @@ async function boot() {
   }
 }
 
-app.on('window-all-closed', () => app.quit());
+/* 托盘常驻: 窗口全关也不退出（仅当托盘不可用时才回退为退出, 避免无入口僵死） */
+app.on('window-all-closed', () => { if (!tray) app.quit(); });
 app.on('before-quit', () => {
   quitting = true;
+  if (tray) { tray.destroy(); tray = null; }
   if (serverProc) serverProc.kill();
 });

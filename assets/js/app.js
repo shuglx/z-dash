@@ -35,6 +35,7 @@ function toggleTheme() {
   try { localStorage.setItem('zd-theme', next); } catch (e) {}
   store.data.config.theme = next;
   store.save('config');
+  if (window.__zdSyncTray) window.__zdSyncTray();   // 桌面版: 刷新托盘菜单勾选
 }
 
 /* 从 config 应用主题 / 桌宠（config 来自 data/config.json, 暗色默认） */
@@ -59,6 +60,7 @@ function applyConfig() {
   try { localStorage.setItem('zd-theme', t); } catch (e) {}
   if (cfg.pet !== false) pet.mount();
   syncPetBtn();
+  if (window.__zdSyncTray) window.__zdSyncTray();   // 桌面版: 启动即同步托盘勾选状态
 }
 
 (function init() {
@@ -111,6 +113,7 @@ function applyConfig() {
       store.data.config.pet = pet.on;
       store.save('config');
       syncPetBtn();
+      if (window.__zdSyncTray) window.__zdSyncTray();   // 桌面版: 刷新托盘菜单勾选
     };
   });
 
