@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <!-- ============================================================
   Z-DASH 关于页 — 桌面版托盘「关于...」独立小窗专用
-  不加载主应用任何 JS/结构, 只复用 style.css 的设计变量;
+  结构/样式 100% 复用主站弹层(.modal/.m-h/.m-b.about/.m-f)+ 遮罩底色,
+  与 web 端点击版本角标打开的关于弹框视觉一模一样;
   {{VER}}/{{BUILD}} 由 server.js 运行时注入(与 index.html 同源)
   ============================================================ -->
 <html lang="zh-CN">
@@ -12,48 +13,32 @@
 <link rel="stylesheet" href="assets/css/style.css">
 <style>
   html,body{height:100%;overflow:hidden}   /* 窗口即内容, 禁滚动 */
-  body{margin:0;display:flex;flex-direction:column;background:var(--bg-0);
-    font-family:var(--mono)}
-  /* 顶部拖拽区(无边框窗口移动用), 底部 CLOSE 按钮(与主站弹层 m-f 同款位置样式) */
-  .ab-bar{height:34px;flex:none;display:flex;align-items:center;justify-content:flex-end;
-    padding:0 6px;-webkit-app-region:drag;border-bottom:1px solid var(--line)}
-  .ab-f{flex:none;display:flex;justify-content:flex-end;gap:10px;padding:0 16px 16px}
-  .ab-x{-webkit-app-region:no-drag;cursor:pointer;background:none;
-    border:1px solid var(--line-hi);color:var(--txt-dim);font-family:var(--mono);
-    font-size:11px;letter-spacing:1px;padding:6px 16px}
-  .ab-x:hover{color:var(--cyan);border-color:var(--cyan);
-    box-shadow:0 0 6px color-mix(in srgb,var(--cyan) 40%,transparent)}
-  /* 主体: 与主站关于弹框同风格, 平铺非弹层 */
-  .ab-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:10px;padding:10px 20px 22px;text-align:center}
-  .ab-logo{width:84px;height:84px;flex:none;
-    filter:drop-shadow(0 0 18px color-mix(in srgb,var(--cyan) 45%,transparent))}
-  .ab-name{font-size:22px;font-weight:700;letter-spacing:3px;color:var(--cyan);text-shadow:var(--glowC)}
-  .ab-name .v{font-size:12px;font-weight:400;color:var(--txt-dim);letter-spacing:1px;margin-left:4px}
-  .ab-build{font-size:10px;color:var(--txt-dim);letter-spacing:2px}
-  .ab-line{width:60%;height:1px;background:var(--line);margin:6px 0}
-  .ab-meta{display:flex;gap:18px;font-size:10px;color:var(--txt-dim);letter-spacing:1px}
-  .ab-meta b{color:var(--txt);font-weight:600;margin-left:3px}
-  .ab-gh{margin-top:2px;background:none;border:1px solid var(--line-hi);cursor:pointer;
-    font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--txt-dim);padding:5px 12px}
-  .ab-gh:hover{color:var(--cyan);border-color:var(--cyan);
-    box-shadow:0 0 8px color-mix(in srgb,var(--cyan) 35%,transparent)}
+  /* 整窗 = 弹层遮罩底色 + 居中弹框卡片(与主站 modal-mask/modal 同构, 背景一致) */
+  body{margin:0;background:var(--mask);display:flex;align-items:center;justify-content:center;
+    padding:16px;font-family:var(--mono)}
+  /* 卡片铺满窗口(扣除遮罩留边), 无边框窗口整体可拖拽移动; 按钮豁免保持可点击 */
+  .modal.ab{width:100%;max-width:none;height:100%;display:flex;flex-direction:column;
+    -webkit-app-region:drag;user-select:none}
+  .modal.ab .btn,.modal.ab .gh{-webkit-app-region:no-drag}
+  .modal.ab .m-b.about{flex:1;justify-content:center}
 </style>
 </head>
 <body>
-  <div class="ab-bar"></div>
-  <div class="ab-main">
-    <img class="ab-logo" src="assets/icon.png" alt="Z-DASH">
-    <div class="ab-name">Z-DASH <span class="v">{{VER}}</span></div>
-    <div class="ab-build">BUILD {{BUILD}}</div>
-    <div class="ab-line"></div>
-    <div class="ab-meta">
-      <span>AUTHOR <b>Ryan Zhou</b></span>
-      <span>LICENSE <b>MIT</b></span>
+  <div class="modal ab">
+    <div class="m-h">ABOUT · 关于</div>
+    <div class="m-b about">
+      <img class="logo" src="assets/icon.png" alt="Z-DASH">
+      <div class="name">Z-DASH <span class="v">{{VER}}</span></div>
+      <div class="build">BUILD {{BUILD}}</div>
+      <div class="line"></div>
+      <div class="meta">
+        <span>AUTHOR <b>Ryan Zhou</b></span>
+        <span>LICENSE <b>MIT</b></span>
+      </div>
+      <button type="button" class="gh" id="abGh">github.com/shuglx/z-dash</button>
     </div>
-    <button type="button" class="ab-gh" id="abGh">github.com/shuglx/z-dash</button>
+    <div class="m-f"><button type="button" class="btn ghost" id="abClose">CLOSE</button></div>
   </div>
-  <div class="ab-f"><button type="button" class="ab-x" id="abClose">CLOSE</button></div>
 <script>
   // 关闭 = 关整个窗口（Electron 下 window.close() 直接关 BrowserWindow）
   document.getElementById('abClose').onclick = () => window.close();
