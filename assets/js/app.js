@@ -6,6 +6,7 @@ const TABS = ['stats', 'todo', 'archive', 'weekly', 'tools', 'links'];
 
 function route() {
   let h = location.hash.replace(/^#\/?/, '');
+  if (h === 'about') h = 'stats';   // #about 仅作关于弹框触发标记, 页面仍落默认页
   if (!TABS.includes(h)) h = 'stats';   // 默认落在 01 数据统计
   TABS.forEach(t => {
     const el = document.getElementById('view-' + t);
@@ -104,6 +105,39 @@ function applyConfig() {
   const helpBtn = document.getElementById('helpBtn');
   if (helpBtn) helpBtn.onclick = showHelp;
   window.__zdShowHelp = showHelp;   // 桌面版标题栏 ? 按钮 / Q 键共用
+
+  // 关于弹框: 版本读侧栏角标(服务端注入), 构建日期读 meta; 桌面版托盘「关于...」触发
+  const showAbout = () => {
+    const ver = (document.querySelector('.brand small .ver') || {}).textContent || '';
+    const build = (document.querySelector('meta[name="zd-build"]') || {}).content || '';
+    ui._open(`
+      <div class="m-h">ABOUT · 关于</div>
+      <div class="m-b about">
+        <img class="logo" src="assets/icon.png" alt="Z-DASH">
+        <div class="name">Z-DASH <span class="v">${ui.esc(ver)}</span></div>
+        ${build ? `<div class="build">BUILD ${ui.esc(build)}</div>` : ''}
+        <div class="line"></div>
+        <div class="meta">
+          <span>AUTHOR <b>Ryan Zhou</b></span>
+          <span>LICENSE <b>MIT</b></span>
+        </div>
+        <button type="button" class="gh" data-gh>github.com/shuglx/z-dash</button>
+      </div>
+      <div class="m-f"><button type="button" class="btn ghost" data-x>CLOSE</button></div>`);
+    ui._box.querySelector('[data-x]').onclick = () => ui.close();
+    const gh = ui._box.querySelector('[data-gh]');
+    gh.onclick = () => {
+      const url = 'https://github.com/shuglx/z-dash';
+      if (window.zdDesktop) zdDesktop.openExternal(url);
+      else window.open(url, '_blank', 'noopener');
+    };
+  };
+  window.__zdAbout = showAbout;   // 桌面版托盘触发 / 控制台调试入口
+
+  // 侧栏品牌区版本角标 → 点击打开关于（web 端入口; 事件委托, 品牌区不重建）
+  document.querySelector('.brand').addEventListener('click', e => {
+    if (e.target.closest('.ver')) showAbout();
+  });
 
   // 桌宠开关按钮（状态读写 config, applyConfig 里统一初始化）
   ['petBtn', 'petBtnM'].forEach(id => {
@@ -205,5 +239,7 @@ function applyConfig() {
     applyConfig();
     xp.init();   // 街区声望: 写入零点锚点 + 渲染侧栏挂件
     route();
+    // 桌面版关于小窗: 加载 /#about 时自动弹出关于弹框
+    if (location.hash === '#about') showAbout();
   });
 })();

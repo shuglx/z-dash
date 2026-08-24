@@ -32,6 +32,8 @@
     const btn = $(kind === 'theme' ? 'themeBtn' : 'petBtn');
     if (btn) btn.click();
   });
+  // 托盘「关于...」→ 关于弹框（app.js 定义）
+  zdDesktop.onTrayAbout(() => { if (window.__zdAbout) window.__zdAbout(); });
   // app.js 在主题/桌宠初始化与每次切换后调用, 把最新状态推给主进程刷新托盘勾选
   window.__zdSyncTray = () => {
     zdDesktop.uiState({ theme: html.dataset.zdTheme === 'light' ? 'light' : 'dark', pet: !!pet.on });

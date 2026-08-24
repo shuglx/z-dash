@@ -6,7 +6,7 @@
    之后在 build/stage 里 npm install && npx electron-builder 即可打包。
    data/ 等个人数据不会进入安装包。
    ============================================================ */
-import { cpSync, mkdirSync, rmSync } from 'node:fs';
+import { cpSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
@@ -20,6 +20,9 @@ mkdirSync(stage, { recursive: true });
 for (const f of ['main.js', 'preload.js', 'package.json', 'icon.png', 'icon.ico']) {
   cpSync(path.join(buildDir, f), path.join(stage, f));
 }
+// 构建信息: 关于弹框显示 Build 日期（每次打包生成当天日期）
+writeFileSync(path.join(stage, 'build-info.json'),
+  JSON.stringify({ date: new Date().toISOString().slice(0, 10) }, null, 2) + '\n');
 for (const f of ['server.js', 'index.html']) {
   cpSync(path.join(root, f), path.join(stage, f));
 }

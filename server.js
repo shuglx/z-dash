@@ -54,6 +54,19 @@ function sendJson(res, code, obj) {
   send(res, code, 'application/json; charset=utf-8', JSON.stringify(obj));
 }
 
+/* ---------- 版本/构建信息: package.json + build-info.json（桌面打包版在根目录, web 版在 build/）, 注入 index.html ---------- */
+function readAppInfo() {
+  let ver = '', build = '';
+  for (const p of [path.join(ROOT, 'package.json'), path.join(ROOT, 'build', 'package.json')]) {
+    try { ver = 'v' + JSON.parse(fs.readFileSync(p, 'utf8')).version; break; } catch (e) {}
+  }
+  for (const p of [path.join(ROOT, 'build-info.json'), path.join(ROOT, 'build', 'build-info.json')]) {
+    try { build = JSON.parse(fs.readFileSync(p, 'utf8')).date || ''; break; } catch (e) {}
+  }
+  return { ver, build };
+}
+const APP_INFO = readAppInfo();
+
 /* ---------- 静态文件 ---------- */
 function serveStatic(req, res, pathname) {
   let file = pathname === '/' ? '/index.html' : pathname;
@@ -75,6 +88,14 @@ function serveStatic(req, res, pathname) {
 
 function streamFile(res, fp) {
   const ext = path.extname(fp).toLowerCase();
+  // index.html: 读入内存把 {{VER}}/{{BUILD}} 替换为当前版本/构建日期（侧栏角标 + 关于弹框）, 其余文件照常流式
+  if (path.basename(fp) === 'index.html') {
+    return fs.readFile(fp, 'utf8', (err, html) => {
+      if (err) return send(res, 404, 'text/plain', 'Not Found');
+      send(res, 200, 'text/html; charset=utf-8',
+        html.replace(/\{\{VER\}\}/g, APP_INFO.ver).replace(/\{\{BUILD\}\}/g, APP_INFO.build));
+    });
+  }
   // no-store: 静态资源不缓存（含嵌入式预览窗/代理), 避免拿到旧版 JS/CSS
   res.writeHead(200, {
     'Content-Type': MIME[ext] || 'application/octet-stream',

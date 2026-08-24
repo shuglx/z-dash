@@ -39,5 +39,10 @@ contextBridge.exposeInMainWorld('zdDesktop', {
   onTrayToggle: cb => {
     const h = (_e, kind) => cb(kind);
     ipcRenderer.on('zd:tray-toggle', h);
+  },
+  // 托盘菜单「关于...」→ 打开关于弹框（app.js 的 __zdAbout）
+  onTrayAbout: cb => {
+    const h = () => cb();
+    ipcRenderer.on('zd:tray-about', h);
   }
 });

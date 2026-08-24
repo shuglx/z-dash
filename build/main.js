@@ -171,6 +171,7 @@ function buildTrayMenu() {
     ] },
     { label: '开机启动', type: 'checkbox', checked: getAutoStart(),
       click: () => setAutoStart(!getAutoStart()) },
+    { label: '关于...', click: () => showAboutWin() },
     { type: 'separator' },
     { label: '退出', click: () => app.quit() }
   ]);
@@ -184,6 +185,29 @@ function createTray() {
   tray.on('click', () => showWin());   // 左键单击唤起窗口（右键弹菜单, Linux 部分桌面也把左键映射到菜单）
 }
 
+/* ---------- 关于窗口（独立小窗, 复用内嵌 server 的页面 + #about 自动弹框） ---------- */
+let aboutWin = null;
+let serverPort = null;   // boot() 成功后记录, 关于窗口加载用
+
+function showAboutWin() {
+  if (aboutWin) { aboutWin.show(); aboutWin.focus(); return; }
+  aboutWin = new BrowserWindow({
+    width: 420,
+    height: 480,
+    resizable: false,
+    maximizable: false,
+    fullscreenable: false,
+    backgroundColor: '#090c13',
+    title: '关于 Z-DASH',
+    autoHideMenuBar: true,
+    icon: path.join(APP_ROOT, 'icon.png'),
+    webPreferences: { preload: path.join(APP_ROOT, 'preload.js') },
+  });
+  aboutWin.removeMenu();
+  aboutWin.loadURL('http://127.0.0.1:' + (serverPort || BASE_PORT) + '/#about');
+  aboutWin.on('closed', () => { aboutWin = null; });
+}
+
 /* ---------- 主流程 ---------- */
 async function boot() {
   Menu.setApplicationMenu(null);
@@ -193,6 +217,7 @@ async function boot() {
     const port = await findPort();
     startServer(port);
     await waitServer(port);
+    serverPort = port;   // 关于窗口加载用
     win = new BrowserWindow({
       width: 1480,
       height: 1060,   // 初始高度加大 ~15%: 常见屏幕打开即全内容可见, 无垂直滚动条
@@ -272,6 +297,7 @@ async function boot() {
 app.on('window-all-closed', () => { if (!tray) app.quit(); });
 app.on('before-quit', () => {
   quitting = true;
+  if (aboutWin) aboutWin.destroy();   // 关于小窗随主程序退出, 不阻 quit
   if (tray) { tray.destroy(); tray = null; }
   if (serverProc) serverProc.kill();
 });

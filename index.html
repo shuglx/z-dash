@@ -8,6 +8,7 @@
    用自定义 data-zd-theme 属性：避开 TRAE 预览窗/内嵌浏览器强制注入 data-theme 的劫持 */
 try{document.documentElement.dataset.zdTheme=localStorage.getItem('zd-theme')||'dark'}catch(e){}</script>
 <link rel="icon" type="image/png" href="assets/icon.png">
+<meta name="zd-build" content="{{BUILD}}">
 <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
@@ -34,7 +35,7 @@ try{document.documentElement.dataset.zdTheme=localStorage.getItem('zd-theme')||'
 
   <!-- ===== PC 侧边栏 ===== -->
   <aside class="side">
-    <div class="brand">Z<em>-</em>DASH<small>PERSONAL WORKSPACE <button class="help-btn" id="helpBtn" title="快捷键与用法说明">?</button></small></div>
+    <div class="brand">Z<em>-</em>DASH<small>PERSONAL WORKSPACE <span class="ver">{{VER}}</span><button class="help-btn" id="helpBtn" title="快捷键与用法说明">?</button></small></div>
     <nav class="side-nav">
       <div class="nav-item on" data-tab="stats"><span class="k">01</span>数据统计</div>
       <div class="nav-item" data-tab="todo"><span class="k">02</span>待办事项</div>

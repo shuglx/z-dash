@@ -156,6 +156,8 @@ button{font-family:var(--mono)}
   border-bottom:1px solid var(--line);margin-bottom:10px}
 .brand em{font-style:normal;color:var(--magenta);text-shadow:var(--glowM)}
 .brand small{display:block;font-size:10px;font-weight:400;color:var(--txt-dim);letter-spacing:1px;margin-top:2px;text-shadow:none}
+.brand small .ver{font-size:8px;opacity:.65;letter-spacing:0;margin-left:2px;cursor:pointer}
+.brand small .ver:hover{opacity:1;color:var(--cyan)}
 .help-btn{float:right;width:16px;height:16px;margin:0 8px 0 0;padding:0;
   font-size:10px;line-height:14px;font-family:var(--mono);text-align:center;
   color:var(--txt-dim);background:none;border:1px solid var(--line-hi);cursor:pointer}
@@ -516,6 +518,22 @@ html[data-zd-theme="light"] .m-h{background:linear-gradient(180deg,rgba(0,121,95
 .fld label{display:block;font-size:11px;color:var(--txt-dim);letter-spacing:1px;margin-bottom:5px}
 .fld .hint-inline{font-size:9px;opacity:.5;letter-spacing:0}
 .fld .ipt{width:100%}
+
+/* ---------- 关于弹框 ---------- */
+.m-b.about{align-items:center;text-align:center;gap:10px;padding:26px 16px 18px}
+.m-b.about .logo{width:84px;height:84px;flex:none;
+  filter:drop-shadow(0 0 18px color-mix(in srgb,var(--cyan) 45%,transparent))}
+.m-b.about .name{font-size:22px;font-weight:700;letter-spacing:3px;color:var(--cyan);
+  text-shadow:var(--glowC)}
+.m-b.about .name .v{font-size:12px;font-weight:400;color:var(--txt-dim);letter-spacing:1px;margin-left:4px}
+.m-b.about .build{font-size:10px;color:var(--txt-dim);letter-spacing:2px}
+.m-b.about .line{width:60%;height:1px;background:var(--line);margin:6px 0}
+.m-b.about .meta{display:flex;gap:18px;font-size:10px;color:var(--txt-dim);letter-spacing:1px}
+.m-b.about .meta b{color:var(--txt);font-weight:600;margin-left:3px}
+.m-b.about .gh{margin-top:2px;background:none;border:1px solid var(--line-hi);cursor:pointer;
+  font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--txt-dim);padding:5px 12px}
+.m-b.about .gh:hover{color:var(--cyan);border-color:var(--cyan);
+  box-shadow:0 0 8px color-mix(in srgb,var(--cyan) 35%,transparent)}
 
 /* ---------- Toast ---------- */
 .toast{
