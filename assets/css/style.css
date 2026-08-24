@@ -306,6 +306,8 @@ html[data-zd-theme="light"] input[type="date"].ipt{color-scheme:light}
 .task .desc{color:var(--txt-dim);font-size:11px;line-height:1.5;margin-bottom:8px;padding:4px 8px;
   border-left:1px solid color-mix(in srgb,var(--acc) 35%,transparent);
   white-space:pre-wrap;word-break:break-all}
+.task .desc a{color:var(--cyan);text-decoration:none;border-bottom:1px dashed var(--cyan-dim)}
+.task .desc a:hover{color:var(--cyan);border-bottom-style:solid;text-shadow:var(--glowC)}
 .task .tagx{color:var(--magenta);margin-right:6px;font-size:11px}
 .task .meta{display:flex;gap:10px;font-size:10px;color:var(--txt-dim);flex-wrap:wrap;align-items:center;
   border-top:1px solid var(--line);padding-top:8px;margin-top:2px}

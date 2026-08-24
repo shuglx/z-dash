@@ -68,6 +68,17 @@ const todoView = {
     }).join('');
   },
 
+  /* 文本 → 安全 HTML: 先整体转义, 再把裸 http(s) 链接替换为 <a>
+     正则只认 URL 合法字符(RFC 3986 ASCII): 中文/中文标点/空白/引号等天然截断,
+     不会把紧跟的文字吞进链接; 转义产生的 &amp; 在 href 里还原为 & */
+  linkify(s) {
+    const esc = ui.esc(s);
+    return esc.replace(/https?:\/\/[A-Za-z0-9\-._~:/?#\[\]@!$&'()*+,;=%]+/g, u => {
+      const url = u.replace(/&amp;/g, '&');
+      return `<a href="${url}" target="_blank" rel="noopener" draggable="false">${u}</a>`;
+    });
+  },
+
   card(t) {
     const { tag, title } = this.parseTag(t.title);
     const pri = { P0: 'hi', P1: 'mid', P2: 'low' }[t.priority] || 'low';
@@ -79,7 +90,7 @@ const todoView = {
           ${tag ? `<span class="tagx">[${ui.esc(tag)}]</span>` : ''}<div class="t">${ui.esc(title)}</div>
           ${t.status === 'done' ? '<button class="btn arch" data-act="arch" title="归档进历史">ARCHIVE</button>' : ''}
         </div>
-        ${t.desc ? `<div class="desc">${ui.esc(t.desc)}</div>` : ''}
+        ${t.desc ? `<div class="desc">${this.linkify(t.desc)}</div>` : ''}
         <div class="meta">
           <span class="pri ${pri}">${ui.esc(t.priority || 'P2')}</span>
           ${t.dueDate && t.status !== 'done' && t.dueDate <= ui.today() ? `<span class="date due" title="已到期/今日截止">${ui.fmtMD(t.dueDate)}</span>` : t.dueDate ? `<span class="date">${ui.fmtMD(t.dueDate)}</span>` : ''}
@@ -97,6 +108,15 @@ const todoView = {
   bind(el) {
     // 新任务
     el.querySelector('[data-act="new"]').onclick = () => this.editModal(null);
+
+    // desc 内链接: 桌面端走系统默认浏览器, web 端新标签打开
+    el.addEventListener('click', e => {
+      const a = e.target.closest('.desc a');
+      if (!a) return;
+      e.preventDefault();   // 不触发卡片其他行为
+      if (window.zdDesktop) zdDesktop.openExternal(a.href);
+      else window.open(a.href, '_blank', 'noopener');
+    });
 
     // 卡片操作（事件委托）
     el.onclick = async e => {
