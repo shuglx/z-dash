@@ -88,8 +88,9 @@ function serveStatic(req, res, pathname) {
 
 function streamFile(res, fp) {
   const ext = path.extname(fp).toLowerCase();
-  // index.html: 读入内存把 {{VER}}/{{BUILD}} 替换为当前版本/构建日期（侧栏角标 + 关于弹框）, 其余文件照常流式
-  if (path.basename(fp) === 'index.html') {
+  // index.html / about.html: 读入内存把 {{VER}}/{{BUILD}} 替换为当前版本/构建日期（侧栏角标 + 关于）, 其余文件照常流式
+  const base = path.basename(fp);
+  if (base === 'index.html' || base === 'about.html') {
     return fs.readFile(fp, 'utf8', (err, html) => {
       if (err) return send(res, 404, 'text/plain', 'Not Found');
       send(res, 200, 'text/html; charset=utf-8',

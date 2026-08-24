@@ -185,7 +185,7 @@ function createTray() {
   tray.on('click', () => showWin());   // 左键单击唤起窗口（右键弹菜单, Linux 部分桌面也把左键映射到菜单）
 }
 
-/* ---------- 关于窗口（独立小窗, 复用内嵌 server 的页面 + #about 自动弹框） ---------- */
+/* ---------- 关于窗口（独立小窗, 加载独立 about.html, 与主应用完全隔离） ---------- */
 let aboutWin = null;
 let serverPort = null;   // boot() 成功后记录, 关于窗口加载用
 
@@ -193,18 +193,22 @@ function showAboutWin() {
   if (aboutWin) { aboutWin.show(); aboutWin.focus(); return; }
   aboutWin = new BrowserWindow({
     width: 420,
-    height: 480,
+    height: 400,           /* 与 about.html 内容高度匹配, 无滚动条 */
     resizable: false,
     maximizable: false,
+    minimizable: false,
     fullscreenable: false,
     backgroundColor: '#090c13',
     title: '关于 Z-DASH',
+    show: false,
+    frame: false,          /* 无边框: 关闭按钮/拖拽区由 about.html 自绘 */
     autoHideMenuBar: true,
     icon: path.join(APP_ROOT, 'icon.png'),
     webPreferences: { preload: path.join(APP_ROOT, 'preload.js') },
   });
   aboutWin.removeMenu();
-  aboutWin.loadURL('http://127.0.0.1:' + (serverPort || BASE_PORT) + '/#about');
+  aboutWin.loadURL('http://127.0.0.1:' + (serverPort || BASE_PORT) + '/about.html');
+  aboutWin.once('ready-to-show', () => aboutWin.show());   /* 内容就绪再显示, 防白闪 */
   aboutWin.on('closed', () => { aboutWin = null; });
 }
 

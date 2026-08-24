@@ -6,7 +6,6 @@ const TABS = ['stats', 'todo', 'archive', 'weekly', 'tools', 'links'];
 
 function route() {
   let h = location.hash.replace(/^#\/?/, '');
-  if (h === 'about') h = 'stats';   // #about 仅作关于弹框触发标记, 页面仍落默认页
   if (!TABS.includes(h)) h = 'stats';   // 默认落在 01 数据统计
   TABS.forEach(t => {
     const el = document.getElementById('view-' + t);
@@ -239,7 +238,5 @@ function applyConfig() {
     applyConfig();
     xp.init();   // 街区声望: 写入零点锚点 + 渲染侧栏挂件
     route();
-    // 桌面版关于小窗: 加载 /#about 时自动弹出关于弹框
-    if (location.hash === '#about') showAbout();
   });
 })();
