@@ -93,85 +93,141 @@ const linksView = {
   },
 
   /* ---------- 拖拽: 卡片拖到其他组或组内调序（搜索过滤时停用） ----------
-     组内顺序 = items 数组顺序; 落点在某卡左/右半侧 → 插到其前/后;
-     落在组空白区 / 组头（折叠组）→ 追加到该组末尾 */
+     拖动过程中实时 DOM 移位 + FLIP 过渡 = 其余卡被"挤开"的动效;
+     落点在某卡左/右半侧 → 插到其前/后; 组空白区 / 组头 → 挪到组末尾;
+     松手后按最终 DOM 顺序回写 items(顺序 + groupId); ESC 取消则还原 */
   bindDnD() {
+    if (this.state.q.trim()) return;   // 搜索过滤时卡片不可拖
     const box = document.getElementById('grpBox');
     if (!box) return;
-    const clearMarks = () => {
-      box.querySelectorAll('.drop-before,.drop-after,.drop-in').forEach(el =>
-        el.classList.remove('drop-before', 'drop-after', 'drop-in'));
+    let draggedEl = null;
+    let dropped = false;
+    const clearMarks = () => box.querySelectorAll('.drop-in').forEach(el => el.classList.remove('drop-in'));
+
+    /* FLIP: 记录旧位置 → DOM 移位 → 反向位移归零过渡, 其余卡平滑滑开 */
+    const flipMove = insert => {
+      const els = [...box.querySelectorAll('.lk')];
+      const first = new Map(els.map(el => [el, el.getBoundingClientRect()]));
+      insert();
+      els.forEach(el => {
+        const f = first.get(el);
+        if (!f) return;
+        const l = el.getBoundingClientRect();
+        const dx = f.left - l.left, dy = f.top - l.top;
+        if (dx || dy) {
+          el.style.transition = 'none';
+          el.style.transform = `translate(${dx}px,${dy}px)`;
+        }
+      });
+      void box.offsetHeight;   // 回流一次, 让起始位移先生效
+      els.forEach(el => {
+        if (!el.style.transform) return;
+        el.style.transition = 'transform .2s cubic-bezier(.2,.8,.3,1)';
+        el.style.transform = '';
+      });
+    };
+
+    // 挪到某卡前/后（跨组时连颜色标识一起换成目标组色）
+    const moveToCard = (card, side) => flipMove(() => {
+      card.parentNode.insertBefore(draggedEl, side === 'before' ? card : card.nextSibling);
+      if (draggedEl.dataset.c !== card.dataset.c) draggedEl.dataset.c = card.dataset.c;
+    });
+
+    // 挪到某组末尾（+ NEW LINK 磁贴之前）
+    const moveToEnd = grp => {
+      const links = grp.querySelector('.links');
+      if (!links) return;
+      flipMove(() => {
+        links.insertBefore(draggedEl, links.querySelector('.lk.add'));
+        draggedEl.dataset.c = String([...box.querySelectorAll('.grp')].indexOf(grp) % 4);
+      });
+    };
+
+    // 松手落定: 按当前 DOM 顺序回写 items（数组顺序 = 组序 + 组内序, 跨组同步 groupId）
+    const commitDOM = async () => {
+      if (!draggedEl) return;
+      const d = store.data.links;
+      const order = new Map([...box.querySelectorAll('.lk[data-id]')].map((el, i) => [el.dataset.id, i]));
+      const gidOf = {};
+      box.querySelectorAll('.grp').forEach(grp =>
+        grp.querySelectorAll('.lk[data-id]').forEach(el => { gidOf[el.dataset.id] = grp.dataset.gid; }));
+      d.items.sort((a, b) => order.get(a.id) - order.get(b.id));
+      d.items.forEach(it => { if (gidOf[it.id]) it.groupId = gidOf[it.id]; });
+      await store.save('links');
+      this.updateGroups();
     };
 
     box.querySelectorAll('.lk[data-id]').forEach(card => {
       card.ondragstart = e => {
+        draggedEl = card; dropped = false;
         e.dataTransfer.setData('text/plain', card.dataset.id);
         e.dataTransfer.effectAllowed = 'move';
         card.classList.add('dragging');
       };
-      card.ondragend = () => { card.classList.remove('dragging'); clearMarks(); };
-      card.ondragover = e => {
-        e.preventDefault(); e.stopPropagation();   // 卡片自身作为落点, 不再冒泡给组容器
-        e.dataTransfer.dropEffect = 'move';
-        box.querySelectorAll('.lk.drop-before,.lk.drop-after').forEach(el => {
-          if (el !== card) el.classList.remove('drop-before', 'drop-after');
-        });
-        const r = card.getBoundingClientRect();
-        card.classList.toggle('drop-before', e.clientX < r.left + r.width / 2);
-        card.classList.toggle('drop-after', e.clientX >= r.left + r.width / 2);
-      };
-      card.ondragleave = e => {
-        if (card.contains(e.relatedTarget)) return;   // 移入子元素不算离开
-        card.classList.remove('drop-before', 'drop-after');
-      };
-      card.ondrop = async e => {
-        e.preventDefault(); e.stopPropagation();
-        const side = card.classList.contains('drop-before') ? 'before' : 'after';
+      card.ondragend = () => {
+        card.classList.remove('dragging');
         clearMarks();
-        await this.dropMove(e.dataTransfer.getData('text/plain'), card.dataset.id, side);
+        if (!dropped) this.updateGroups();   // ESC 取消 / 拖出界: 丢弃临时 DOM 移位, 还原
+        draggedEl = null;
+      };
+      card.ondragover = e => {
+        e.preventDefault(); e.stopPropagation();   // 卡片自身是落点, 不冒泡给组容器
+        e.dataTransfer.dropEffect = 'move';
+        if (!draggedEl || card === draggedEl) return;
+        const r = card.getBoundingClientRect();
+        const side = e.clientX < r.left + r.width / 2 ? 'before' : 'after';
+        // 已停在该卡前/后 → 无需移动（防抖: 中线两侧各自稳定）
+        if (draggedEl.parentNode === card.parentNode &&
+            (side === 'before' ? card.previousElementSibling : card.nextElementSibling) === draggedEl) return;
+        moveToCard(card, side);
+      };
+      card.ondrop = e => {
+        e.preventDefault(); e.stopPropagation();
+        dropped = true;
+        commitDOM();
       };
     });
 
-    // 组内空白区 / + NEW LINK 磁贴: 追加到组末尾
+    // 组内空白区 / + NEW LINK 磁贴 → 挪到组末尾
     box.querySelectorAll('.links').forEach(lnk => {
-      lnk.ondragover = e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; lnk.classList.add('drop-in'); };
+      lnk.ondragover = e => {
+        e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+        lnk.classList.add('drop-in');
+        if (!draggedEl) return;
+        const cards = lnk.querySelectorAll('.lk[data-id]');
+        if (cards.length && cards[cards.length - 1] === draggedEl) return;   // 已在组尾
+        moveToEnd(lnk.closest('.grp'));
+      };
       lnk.ondragleave = e => { if (!lnk.contains(e.relatedTarget)) lnk.classList.remove('drop-in'); };
-      lnk.ondrop = async e => {
+      lnk.ondrop = e => {
         e.preventDefault();
         lnk.classList.remove('drop-in');
-        clearMarks();
-        await this.dropAppend(e.dataTransfer.getData('text/plain'), lnk.closest('.grp').dataset.gid);
+        dropped = true;
+        commitDOM();
       };
     });
 
-    // 组头: 折叠组的唯一落点（也可用于展开组直接追加到末尾）
+    // 组头: 展开组 → 挪到组末尾; 折叠组(无 .links 容器) → 数据级追加
     box.querySelectorAll('.grp-h').forEach(h => {
-      h.ondragover = e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; h.classList.add('drop-in'); };
+      h.ondragover = e => {
+        e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+        h.classList.add('drop-in');
+        const grp = h.closest('.grp');
+        if (draggedEl && grp.querySelector('.links')) moveToEnd(grp);
+      };
       h.ondragleave = e => { if (!h.contains(e.relatedTarget)) h.classList.remove('drop-in'); };
-      h.ondrop = async e => {
+      h.ondrop = e => {
         e.preventDefault();
         h.classList.remove('drop-in');
-        clearMarks();
-        await this.dropAppend(e.dataTransfer.getData('text/plain'), h.closest('.grp').dataset.gid);
+        const grp = h.closest('.grp');
+        dropped = true;
+        if (grp.querySelector('.links')) commitDOM();
+        else if (draggedEl) this.dropAppend(draggedEl.dataset.id, grp.dataset.gid);
       };
     });
   },
 
-  // 移动到某卡前/后（跨组时同步改 groupId）
-  async dropMove(id, targetId, side) {
-    const items = store.data.links.items;
-    const it = items.find(x => x.id === id);
-    const tgt = items.find(x => x.id === targetId);
-    if (!it || !tgt || it === tgt) return;
-    it.groupId = tgt.groupId;
-    items.splice(items.indexOf(it), 1);
-    const idx = items.indexOf(tgt);
-    items.splice(side === 'before' ? idx : idx + 1, 0, it);
-    await store.save('links');
-    this.updateGroups();
-  },
-
-  // 追加到某组末尾
+  // 追加到某组末尾（折叠组组头落点用: 无 DOM 容器, 直接改数据重渲染）
   async dropAppend(id, gid) {
     const items = store.data.links.items;
     const it = items.find(x => x.id === id);

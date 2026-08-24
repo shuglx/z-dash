@@ -439,10 +439,8 @@ html[data-zd-theme="light"] .cell.off{background:rgba(35,47,61,.05)}
 .lk.add::before{display:none}
 .lk.add:hover{color:var(--lacc)}
 .lk.add:hover{color:var(--cyan);border-color:var(--cyan-dim);transform:none}
-/* 拖拽换组/排序: 拖动中的卡半透明; 目标卡左/右缘琥珀色插入指示; 组容器/组头可整组落入 */
+/* 拖拽换组/排序: 拖动中的卡半透明, 其余卡由 JS FLIP 实时挤开; 组容器/组头悬停高亮 */
 .lk.dragging{opacity:.35;transform:none}
-.lk.drop-before{box-shadow:-6px 0 0 -2px var(--amber)}
-.lk.drop-after{box-shadow:6px 0 0 -2px var(--amber)}
 .links.drop-in{outline:1px dashed var(--amber);outline-offset:6px}
 .grp-h.drop-in{color:var(--amber)}
 

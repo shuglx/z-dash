@@ -117,6 +117,41 @@ function showWin() {
 
 function refreshTray() { if (tray) tray.setContextMenu(buildTrayMenu()); }
 
+/* ---------- 开机启动 ----------
+   Linux: 自管 ~/.config/autostart/ 下的 desktop 条目（Electron 的 setLoginItemSettings
+   官方仅支持 macOS/Windows）; macOS/Windows: app.setLoginItemSettings */
+const AUTO_FILE = () => path.join(
+  process.env.XDG_CONFIG_HOME || path.join(process.env.HOME || '~', '.config'),
+  'autostart', 'local.ryan.zdash.desktop');
+
+function getAutoStart() {
+  if (process.platform === 'linux') return fs.existsSync(AUTO_FILE());
+  try { return !!app.getLoginItemSettings().openAtLogin; } catch (e) { return false; }
+}
+
+function setAutoStart(on) {
+  try {
+    if (process.platform === 'linux') {
+      const f = AUTO_FILE();
+      if (on) {
+        fs.mkdirSync(path.dirname(f), { recursive: true });
+        fs.writeFileSync(f, [
+          '[Desktop Entry]',
+          'Type=Application',
+          'Name=Z-DASH',
+          'Exec=' + process.execPath,
+          'Terminal=false',
+          'X-GNOME-Autostart-enabled=true',
+          ''
+        ].join('\n'));
+      } else fs.rmSync(f, { force: true });
+    } else {
+      app.setLoginItemSettings({ openAtLogin: on });
+    }
+  } catch (e) { console.error('[desktop] 开机启动设置失败:', e.message || e); }
+  refreshTray();
+}
+
 function buildTrayMenu() {
   // 开关项用 checkbox（开启打钩）/ 桌宠选择用 radio 子菜单（互斥选中）,
   // 点击 → 执行切换 → refreshTray() 按真实状态重建菜单; 退出为普通动作按钮
@@ -134,6 +169,8 @@ function buildTrayMenu() {
       { label: '关闭', type: 'radio', checked: !petOn,
         click: () => { if (petOn) win && win.webContents.send('zd:tray-toggle', 'pet'); } },
     ] },
+    { label: '开机启动', type: 'checkbox', checked: getAutoStart(),
+      click: () => setAutoStart(!getAutoStart()) },
     { type: 'separator' },
     { label: '退出', click: () => app.quit() }
   ]);
@@ -187,9 +224,13 @@ async function boot() {
     ipcMain.on('zd:win-top', () => { if (win) setTop(!win.isAlwaysOnTop()); });
     ipcMain.handle('zd:win-is-top', () => !!win && win.isAlwaysOnTop());
 
-    /* ---------- 链接用系统默认程序打开（浏览器/文件管理器, smb:// 等协议依赖此路径） ---------- */
+    /* ---------- 链接用系统默认程序打开（浏览器/文件管理器, smb:// 等协议依赖此路径） ----------
+       Linux 走 xdg-open: smb:// 需要桌面环境注册了 x-scheme-handler/smb（GNOME/KDE 装文件管理器即有） */
     ipcMain.on('zd:open-external', (_e, url) => {
-      if (typeof url === 'string' && /^[a-z][a-z0-9+.-]*:/i.test(url)) shell.openExternal(url);
+      if (typeof url === 'string' && /^[a-z][a-z0-9+.-]*:/i.test(url)) {
+        shell.openExternal(url).catch(err =>
+          console.error('[desktop] openExternal 失败(可能未注册协议处理器):', url, err.message || err));
+      }
     });
 
     /* ---------- 渲染进程回推主题/桌宠状态 → 刷新托盘菜单勾选 ---------- */
