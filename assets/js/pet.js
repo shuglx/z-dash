@@ -141,7 +141,7 @@ const pet = {
     el.src = 'assets/pet/' + encodeURIComponent(next) + '.webm';
     el.loop = false;            // 链式模型：全部一次性播放
     el.muted = true;
-    el.onended = () => this.handleEnded();
+    el.onended = () => this.handleEnded(el);
 
     const onReady = () => {
       el.removeEventListener('loadeddata', onReady);
@@ -149,6 +149,12 @@ const pet = {
       const old = this.vids[this.front];
       el.classList.add('is-front');
       if (old !== el) old.classList.remove('is-front');
+      // stop the replaced old video immediately, otherwise its ended
+      // event fires mid-way of the new animation (interrupt bug)
+      if (old !== el) {
+        old.onended = null;
+        try { old.pause(); } catch (e) {}
+      }
       this.front = this.front === 0 ? 1 : 0;
       this.pending = null;
       // 朝向镜像用 inline transform（旧视频保持原朝向淡出，不闪）
@@ -174,8 +180,10 @@ const pet = {
     this.switchTo(next, true);
   },
 
-  handleEnded() {
+  handleEnded(el) {
     if (!this.on) return;
+    if (this.pending) return;                       // a switch is loading: ignore
+    if (el && el !== this.vids[this.front]) return; // stale ended from back video: ignore
     if (this.drag.active) return;              // 拖拽中不打断
     if (this.anim === this.TURN)               // 东张西望播完 → 翻转朝向
       this.facing = this.facing === 'left' ? 'right' : 'left';
@@ -231,6 +239,7 @@ const pet = {
     const token = ++this.moveToken;
     const step = () => {
       if (this.moveToken !== token || !this.on) return;
+      if (el !== this.vids[this.front]) { this.moveId = null; return; } // move anim replaced: stop drive
       const t = el.currentTime || 0;
       let ratioX;
       if (t <= this.MOVE_LEAD_SEC) ratioX = startRatio;
