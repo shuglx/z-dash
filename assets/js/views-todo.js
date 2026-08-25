@@ -109,17 +109,16 @@ const todoView = {
     // 新任务
     el.querySelector('[data-act="new"]').onclick = () => this.editModal(null);
 
-    // desc 内链接: 桌面端走系统默认浏览器, web 端新标签打开
-    el.addEventListener('click', e => {
-      const a = e.target.closest('.desc a');
-      if (!a) return;
-      e.preventDefault();   // 不触发卡片其他行为
-      if (window.zdDesktop) zdDesktop.openExternal(a.href);
-      else window.open(a.href, '_blank', 'noopener');
-    });
-
-    // 卡片操作（事件委托）
+    // 卡片操作（事件委托; onclick 赋值式绑定, 重复 render 幂等不叠加）
     el.onclick = async e => {
+      // desc 内链接: 桌面端走系统默认浏览器, web 端新标签打开
+      const a = e.target.closest('.desc a');
+      if (a) {
+        e.preventDefault();   // 不触发卡片其他行为
+        if (window.zdDesktop) zdDesktop.openExternal(a.href);
+        else window.open(a.href, '_blank', 'noopener');
+        return;
+      }
       // done 卡右上角 ARCHIVE 按钮
       const archBtn = e.target.closest('button[data-act="arch"]');
       if (archBtn) {
