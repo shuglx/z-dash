@@ -40,11 +40,12 @@ function toggleTheme() {
 
 /* 从 config 应用主题 / 桌宠（config 来自 data/config.json, 暗色默认） */
 function syncPetBtn() {
-  const txt = pet.on ? '桌宠 ON' : '桌宠 OFF';
+  const off = !pet.on;
+  const name = pet.on && pet.def ? pet.def.name : '';
   const b1 = document.getElementById('petBtn'), b2 = document.getElementById('petBtnM');
-  if (b1) b1.textContent = txt;
-  if (b2) b2.textContent = pet.on ? '桌宠' : '桌宠×';
-  b1 && b1.classList.toggle('ghost', !pet.on);
+  if (b1) b1.textContent = off ? '桌宠 OFF' : '桌宠·' + name;
+  if (b2) b2.textContent = off ? '桌宠×' : '桌宠·' + name;
+  b1 && b1.classList.toggle('ghost', off);
 }
 
 function applyConfig() {
@@ -58,7 +59,11 @@ function applyConfig() {
   // data-zd-theme：自定义属性, 避免被内嵌浏览器强制注入的 data-theme 覆盖
   document.documentElement.dataset.zdTheme = t;
   try { localStorage.setItem('zd-theme', t); } catch (e) {}
-  if (cfg.pet !== false) pet.mount();
+  // 桌宠: 'off' 或宠物 id; 旧版布尔值(true/false)统一转 'off' 兼容
+  let p = cfg.pet;
+  if (typeof p !== 'string' || !pet._norm(p)) p = 'off';
+  cfg.pet = p;
+  if (p !== 'off') pet.mount(p);
   syncPetBtn();
   if (window.__zdSyncTray) window.__zdSyncTray();   // 桌面版: 启动即同步托盘勾选状态
 }
@@ -95,7 +100,7 @@ function applyConfig() {
       { k: '  ← →', v: '卡片上的箭头按钮快捷切换状态' },
       { k: '  ARCHIVE', v: '已完成 TASK 归档进历史，联动 XP 升级和声望系统' },
       { k: '其他', v: '' },
-      { k: '  桌宠', v: '点击有回应，可拖动；侧边栏「桌宠 开/关」切换' },
+      { k: '  桌宠', v: '点击有回应，可拖动；侧边栏「桌宠」选择宠物或关闭' },
       { k: '  主题', v: '侧边栏「亮/暗切换」按钮' }
     );
     return rows;
@@ -138,16 +143,41 @@ function applyConfig() {
     if (e.target.closest('.ver')) showAbout();
   });
 
-  // 桌宠开关按钮（状态读写 config, applyConfig 里统一初始化）
+  // 桌宠选择（状态读写 config, applyConfig 里统一初始化; 桌面版托盘菜单共用）
+  window.__zdSetPet = id => {
+    if (id === 'off') pet.unmount();
+    else if (!pet.setPet(id)) return;
+    store.data.config.pet = id;
+    store.save('config');
+    syncPetBtn();
+    if (window.__zdSyncTray) window.__zdSyncTray();   // 桌面版: 刷新托盘菜单勾选
+  };
+  const petPicker = () => {
+    const cur = store.data.config.pet || 'off';
+    // 可选项 = 关闭 + 已完成宠物; 未完成的也展示（置灰不可选）
+    const opts = [{ id: 'off', name: '关闭桌宠', desc: 'PET OFF' }]
+      .concat(pet.list().map(p => ({ id: p.id, name: p.name, desc: p.id })))
+      .concat(Object.keys(pet.PETS).filter(id => pet.PETS[id].ready === false)
+        .map(id => ({ id, name: pet.PETS[id].name, desc: '制作中…', dis: true })));
+    ui._open(`
+      <div class="m-h">PET · 桌宠选择</div>
+      <div class="m-b">
+        <div class="pet-list">
+          ${opts.map(o => `
+          <div class="pet-opt${o.id === cur ? ' on' : ''}${o.dis ? ' dis' : ''}" data-id="${ui.esc(o.id)}">
+            <span class="n">${ui.esc(o.name)}</span><span class="d">${ui.esc(o.desc)}</span>
+          </div>`).join('')}
+        </div>
+      </div>
+      <div class="m-f"><button type="button" class="btn ghost" data-x>CLOSE</button></div>`);
+    ui._box.querySelector('[data-x]').onclick = () => ui.close();
+    ui._box.querySelectorAll('.pet-opt:not(.dis)').forEach(el => {
+      el.onclick = () => { ui.close(); window.__zdSetPet(el.dataset.id); };
+    });
+  };
   ['petBtn', 'petBtnM'].forEach(id => {
     const b = document.getElementById(id);
-    if (b) b.onclick = () => {
-      pet.toggle();
-      store.data.config.pet = pet.on;
-      store.save('config');
-      syncPetBtn();
-      if (window.__zdSyncTray) window.__zdSyncTray();   // 桌面版: 刷新托盘菜单勾选
-    };
+    if (b) b.onclick = petPicker;
   });
 
   // 快捷键：数字 1-9 切页 · E 编辑/查看鼠标 hover 项 · Q 帮助 · A 新增任务

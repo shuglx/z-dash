@@ -27,14 +27,25 @@
   zdDesktop.isAlwaysOnTop().then(setTopIcon);
   zdDesktop.onTopChanged(setTopIcon);
 
-  /* ---------- 托盘菜单联动: 切换主题/桌宠 → 复用页面按钮逻辑（含状态落盘） ---------- */
+  /* ---------- 托盘菜单联动: 切换主题/桌宠 → 复用页面逻辑（含状态落盘） ---------- */
   zdDesktop.onTrayToggle(kind => {
-    const btn = $(kind === 'theme' ? 'themeBtn' : 'petBtn');
-    if (btn) btn.click();
+    if (kind === 'theme') {
+      const btn = $('themeBtn');
+      if (btn) btn.click();
+      return;
+    }
+    // 桌宠: 'pet:<id>'（id 为宠物 id 或 'off'）
+    if (typeof kind === 'string' && kind.startsWith('pet:')) {
+      const id = kind.slice(4);
+      if (window.__zdSetPet && (store.data.config.pet || 'off') !== id) window.__zdSetPet(id);
+    }
   });
   // app.js 在主题/桌宠初始化与每次切换后调用, 把最新状态推给主进程刷新托盘勾选
   window.__zdSyncTray = () => {
-    zdDesktop.uiState({ theme: html.dataset.zdTheme === 'light' ? 'light' : 'dark', pet: !!pet.on });
+    zdDesktop.uiState({
+      theme: html.dataset.zdTheme === 'light' ? 'light' : 'dark',
+      pet: pet.on && pet.active ? pet.active : 'off',
+    });
   };
 
   /* ---------- 帮助按钮: 与 Q 键共用 app.js 的帮助弹窗 ---------- */

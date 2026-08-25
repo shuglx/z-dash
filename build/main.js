@@ -20,7 +20,13 @@ let win = null;
 let serverProc = null;
 let quitting = false;
 let tray = null;
-let uiState = { theme: 'dark', pet: true };   // 渲染进程同步来的主题/桌宠状态（托盘菜单勾选）
+let uiState = { theme: 'dark', pet: 'off' };   // 渲染进程同步来的主题/桌宠状态（托盘菜单勾选）; pet 为宠物 id 或 'off'
+
+/* 可选桌宠清单（与 assets/js/pet.js 的 PETS 注册表保持一致; 未完成的不列出） */
+const PETS = [
+  { id: 'deepseek-doll', label: '鲸鱼娘' },
+  { id: 'yueyue', label: '小玥儿' },
+];
 
 /* ---------- 单实例: 重复启动时唤起已有窗口 ---------- */
 if (!app.requestSingleInstanceLock()) {
@@ -60,7 +66,7 @@ function seedData() {
     archive: { version: 1, items: [] },
     weekly:  { version: 1, items: [] },
     links:   { version: 1, groups: [], items: [] },
-    config:  { version: 1, theme: 'dark', pet: true },
+    config:  { version: 1, theme: 'dark', pet: 'off' },
   };
   for (const k of Object.keys(empty)) {
     fs.writeFileSync(path.join(DATA_DIR, k + '.json'), JSON.stringify(empty[k], null, 2));
@@ -155,7 +161,6 @@ function setAutoStart(on) {
 function buildTrayMenu() {
   // 开关项用 checkbox（开启打钩）/ 桌宠选择用 radio 子菜单（互斥选中）,
   // 点击 → 执行切换 → refreshTray() 按真实状态重建菜单; 退出为普通动作按钮
-  const petOn = !!uiState.pet;
   return Menu.buildFromTemplate([
     { label: '显示窗口', type: 'checkbox', checked: !!win && win.isVisible() && !win.isMinimized(),
       click: () => { showWin(); refreshTray(); } },
@@ -164,10 +169,10 @@ function buildTrayMenu() {
     { label: '暗色模式', type: 'checkbox', checked: uiState.theme !== 'light',
       click: () => win && win.webContents.send('zd:tray-toggle', 'theme') },
     { label: '桌宠选择', submenu: [
-      { label: '鲸鱼娘', type: 'radio', checked: petOn,
-        click: () => { if (!petOn) win && win.webContents.send('zd:tray-toggle', 'pet'); } },
-      { label: '关闭', type: 'radio', checked: !petOn,
-        click: () => { if (petOn) win && win.webContents.send('zd:tray-toggle', 'pet'); } },
+      ...PETS.map(p => ({ label: p.label, type: 'radio', checked: uiState.pet === p.id,
+        click: () => { if (uiState.pet !== p.id) win && win.webContents.send('zd:tray-toggle', 'pet:' + p.id); } })),
+      { label: '关闭', type: 'radio', checked: uiState.pet === 'off',
+        click: () => { if (uiState.pet !== 'off') win && win.webContents.send('zd:tray-toggle', 'pet:off'); } },
     ] },
     { label: '开机启动', type: 'checkbox', checked: getAutoStart(),
       click: () => setAutoStart(!getAutoStart()) },
@@ -266,7 +271,8 @@ async function boot() {
     ipcMain.on('zd:ui-state', (_e, s) => {
       if (!s || typeof s !== 'object') return;
       if (s.theme === 'light' || s.theme === 'dark') uiState.theme = s.theme;
-      if (typeof s.pet === 'boolean') uiState.pet = s.pet;
+      if (typeof s.pet === 'string') uiState.pet = s.pet;
+      else if (typeof s.pet === 'boolean') uiState.pet = 'off';   // 旧版布尔值 → off
       refreshTray();
     });
 

@@ -2,36 +2,66 @@
    Z-DASH 桌宠 — 移植自 dsh-pet（PC2005-cloud/dsh-pet, MIT）
    原项目为 DeepSeek Harness 的 Cordis 插件（React），
    此处移植为原生 JS：动画链 / 双缓冲切换 / 点击拖拽 / 屏幕漫游
-   动画资源: assets/pet/<动画名>.webm（透明背景, 640x360 画布）
+   动画资源: assets/pet/<宠物id>/<动画名>.webm（透明背景, 640x360 画布）
+   多宠物: PETS 注册表, config.pet 存宠物 id 或 'off'
    ============================================================ */
 const pet = {
-  /* ---------- 动画目录（事实来源，与原项目一致） ---------- */
-  IDLE: '待机呼吸休闲',
-  TURN: '东张西望',
-  ACTS: [
-    '悠闲哼歌', '超大伸懒腰', '原地专心玩魔方', '原地敲击桌面互动',
-    '原地重力下蹲压缩', '哈欠连天', '原地小憩沉眠', '原地蹲下玩玩具汽车',
-    '鲸鱼吐泡泡特效', '女仆屈膝礼仪', '被吓一跳', '原地跳跃抓碎头顶物品',
-    '小幅度原地360度旋转展示', '偷吃零食被抓住', '玩游戏气急败坏',
-    '用鲸鱼尾巴拍打地面', '打瞌睡被惊醒', '玩水枪', '小提琴演奏', '蓝鲸现世',
-    '吃白饭', '照镜子', '优雅女仆舞', '轻快摇摆舞', '可爱宅舞', '整体换装试色',
-    '大口吃零食', '吹气球', '动物环绕', '深度思考碎碎念', '轻快记录', '写代码',
-    '吃Token', '吃早餐', '吃午餐', '吃晚餐', '放风筝', '摇扇纳凉', '吃冰淇淋融化',
-    '被落叶淹没', '中秋赏月吃月饼', '堆雪人',
-    // 新增视频
-    '三球抛接', '下五子棋', '吹笛子', '扑克魔术', '抽陀螺', '拆礼物', '撸猫',
-    '晨间刷牙', '荡秋千', '骑木马', '踢毽子', '变鸽子', '凭空生花', '萌化小幽灵',
-    '蝴蝶蜜蜂环绕头顶开花', '是啊，吃什么', '写福字', '收红包', '放孔明灯',
-    '放河灯', '放烟花', '装点圣诞树', '讨糖南瓜灯', '舞狮头', '穿针乞巧',
-    '插茱萸赏菊', '吃大闸蟹', '吃年糕', '吃汤圆', '吃粽子', '吃糖葫芦', '吃腊八粥',
-    '吃西瓜', '吃重阳糕', '吃长寿面', '吃青团', '吃饺子', '涮火锅',
-  ],
-  CLICKS: [
-    '点击回应-开心跃动', '点击回应-害羞惊讶', '点击回应-傲娇生气',
-    '点击回应-元气挥手', '点击回应-挠痒咯咯笑',
-  ],
-  DRAG: '被鼠标拖拽悬空反馈',
-  MOVES: ['螃蟹走路', '原地漂浮踏步', '原地左转奔跑'],
+  /* ---------- 桌宠注册表（每只一份动画表; ready:false 资源未完成暂不可选） ---------- */
+  PETS: {
+    'deepseek-doll': {
+      name: '鲸鱼娘',
+      IDLE: '待机呼吸休闲',
+      TURN: '东张西望',
+      ACTS: [
+        '悠闲哼歌', '超大伸懒腰', '原地专心玩魔方', '原地敲击桌面互动',
+        '原地重力下蹲压缩', '哈欠连天', '原地小憩沉眠', '原地蹲下玩玩具汽车',
+        '鲸鱼吐泡泡特效', '女仆屈膝礼仪', '被吓一跳', '原地跳跃抓碎头顶物品',
+        '小幅度原地360度旋转展示', '偷吃零食被抓住', '玩游戏气急败坏',
+        '用鲸鱼尾巴拍打地面', '打瞌睡被惊醒', '玩水枪', '小提琴演奏', '蓝鲸现世',
+        '吃白饭', '照镜子', '优雅女仆舞', '轻快摇摆舞', '可爱宅舞', '整体换装试色',
+        '大口吃零食', '吹气球', '动物环绕', '深度思考碎碎念', '轻快记录', '写代码',
+        '吃Token', '吃早餐', '吃午餐', '吃晚餐', '放风筝', '摇扇纳凉', '吃冰淇淋融化',
+        '被落叶淹没', '中秋赏月吃月饼', '堆雪人',
+        '三球抛接', '下五子棋', '吹笛子', '扑克魔术', '抽陀螺', '拆礼物', '撸猫',
+        '晨间刷牙', '荡秋千', '骑木马', '踢毽子', '变鸽子', '凭空生花', '萌化小幽灵',
+        '蝴蝶蜜蜂环绕头顶开花', '是啊，吃什么', '写福字', '收红包', '放孔明灯',
+        '放河灯', '放烟花', '装点圣诞树', '讨糖南瓜灯', '舞狮头', '穿针乞巧',
+        '插茱萸赏菊', '吃大闸蟹', '吃年糕', '吃汤圆', '吃粽子', '吃糖葫芦', '吃腊八粥',
+        '吃西瓜', '吃重阳糕', '吃长寿面', '吃青团', '吃饺子', '涮火锅',
+      ],
+      CLICKS: [
+        '点击回应-开心跃动', '点击回应-害羞惊讶', '点击回应-傲娇生气',
+        '点击回应-元气挥手', '点击回应-挠痒咯咯笑',
+      ],
+      DRAG: '被鼠标拖拽悬空反馈',
+      MOVES: ['螃蟹走路', '原地漂浮踏步', '原地左转奔跑'],
+    },
+    'yueyue': {
+      name: '小玥儿',
+      IDLE: '待机&转向-待机呼吸休闲',
+      TURN: '待机&转向-东张西望',
+      ACTS: [
+        '小动作-偷吃零食被抓住', '小动作-悠闲哼歌', '小动作-整体换装试色',
+        '小动作-晨间刷牙', '小动作-超大伸懒腰',
+        '玩耍-优雅女仆舞', '玩耍-动物环绕', '玩耍-原地蹲下玩玩具汽车',
+        '玩耍-玩水枪', '玩耍-荡秋千', '玩耍-蝴蝶蜜蜂环绕头顶开花',
+        '玩耍-骑木马',
+        '吃什么-吃晚餐', '吃什么-大口吃零食', '吃什么-是啊吃什么',
+        '春节-收红包', '春节-放烟花', '春节-舞狮头',
+        '时节-被落叶淹没', '时节-装点圣诞树',
+      ],
+      CLICKS: [
+        '点击回应-开心跃动', '点击回应-害羞惊讶', '点击回应-傲娇生气',
+        '点击回应-元气挥手',
+      ],
+      DRAG: '拖拽-悬空反馈',
+      MOVES: ['移动-螃蟹走路', '移动-原地漂浮踏步', '移动-原地左转奔跑'],
+    },
+    'cyberpunk-lucy': {
+      name: '露西',
+      ready: false,   // 资源未完成, 暂不可选
+    },
+  },
 
   // thumb 画布 640x360，人物脚底在 y=330；命中矩形（人物区域）
   CANVAS_H: 360, FEET_Y: 330,
@@ -43,6 +73,7 @@ const pet = {
 
   /* ---------- 运行时状态 ---------- */
   on: false,
+  active: null, def: null,   // 当前宠物 id 与其动画表（mount 时确定）
   root: null, stage: null, vids: [], front: 0,
   anim: null, facing: 'left',
   pending: null, gen: 0,
@@ -53,11 +84,39 @@ const pet = {
 
   get size() { return window.innerWidth <= 820 ? 260 : 340; },
 
+  /* ---------- 多宠物 API ---------- */
+  // 可选宠物清单（过滤未完成的）
+  list() {
+    return Object.keys(this.PETS)
+      .filter(id => this.PETS[id].ready !== false)
+      .map(id => ({ id, name: this.PETS[id].name }));
+  },
+  // 归一化宠物 id: 不存在或未完成 → null
+  _norm(id) {
+    const d = this.PETS[id];
+    return d && d.ready !== false ? id : null;
+  },
+  // 切换宠物: 运行中热切换（保持位置）; 关闭状态直接挂载所选宠物
+  setPet(id) {
+    const pid = this._norm(id);
+    if (!pid) return false;
+    if (this.active === pid && this.on) return true;
+    const was = this.on;
+    const pos = was ? this.customPos : null;
+    if (was) this.unmount();
+    this.mount(pid);
+    if (pos) { this.customPos = pos; this.applyCustomPos(); }
+    return true;
+  },
+
   /* ---------- 挂载 / 卸载 ---------- */
-  mount() {
+  mount(id) {
     if (this.on) return;
+    const pid = this._norm(id) || this._norm(this.active) || 'deepseek-doll';
+    this.active = pid;
+    this.def = this.PETS[pid];
     this.on = true;
-    this.anim = this.IDLE;
+    this.anim = this.def.IDLE;
     this.facing = 'left';
     this.customPos = null;
     this.pending = null;
@@ -110,7 +169,7 @@ const pet = {
     };
     window.addEventListener('resize', this._onResize);
 
-    this.switchTo(this.IDLE, true);
+    this.switchTo(this.def.IDLE, true);
   },
 
   unmount() {
@@ -138,10 +197,15 @@ const pet = {
     this.pending = { anim: next, gen };
 
     const el = this.vids[this.front === 0 ? 1 : 0];
-    el.src = 'assets/pet/' + encodeURIComponent(next) + '.webm';
+    el.src = 'assets/pet/' + this.active + '/' + encodeURIComponent(next) + '.webm';
     el.loop = false;            // 链式模型：全部一次性播放
     el.muted = true;
     el.onended = () => this.handleEnded(el);
+    // 加载失败兜底：清掉 pending，否则动画链会永久卡死在最后一帧
+    el.onerror = () => {
+      el.onerror = null;
+      if (this.pending && this.pending.gen === gen) this.pending = null;
+    };
 
     const onReady = () => {
       el.removeEventListener('loadeddata', onReady);
@@ -171,25 +235,25 @@ const pet = {
   pickNext() {
     const roll = Math.random();
     let next;
-    if (roll < 0.3) next = this.IDLE;
-    else if (roll < 0.4) next = this.TURN;
-    else if (roll < 0.8) next = this.pick(this.ACTS);
-    else if (!this.tryMove()) next = this.pick(this.ACTS); // 空间不够回退动作
+    if (roll < 0.3) next = this.def.IDLE;
+    else if (roll < 0.4) next = this.def.TURN;
+    else if (roll < 0.8) next = this.pick(this.def.ACTS);
+    else if (!this.tryMove()) next = this.pick(this.def.ACTS); // 空间不够回退动作
     else return; // tryMove 已安排移动动画
     this.anim = next;
     this.switchTo(next, true);
   },
 
   handleEnded(el) {
-    if (!this.on) return;
+    if (!this.on || !this.def) return;
     if (this.pending) return;                       // a switch is loading: ignore
     if (el && el !== this.vids[this.front]) return; // stale ended from back video: ignore
     if (this.drag.active) return;              // 拖拽中不打断
-    if (this.anim === this.TURN)               // 东张西望播完 → 翻转朝向
+    if (this.anim === this.def.TURN)           // 东张西望播完 → 翻转朝向
       this.facing = this.facing === 'left' ? 'right' : 'left';
-    if (this.anim === this.DRAG || this.CLICKS.includes(this.anim)) {
-      this.anim = this.IDLE;                   // 用户打断后先回待机缓冲
-      this.switchTo(this.IDLE, true);
+    if (this.anim === this.def.DRAG || this.def.CLICKS.includes(this.anim)) {
+      this.anim = this.def.IDLE;               // 用户打断后先回待机缓冲
+      this.switchTo(this.def.IDLE, true);
       return;
     }
     this.pickNext();
@@ -223,7 +287,7 @@ const pet = {
       dir,
       totalRatio: Math.abs(target - cx) / W,
     };
-    this.anim = this.pick(this.MOVES);
+    this.anim = this.pick(this.def.MOVES);
     this.switchTo(this.anim, true);
     return true;
   },
@@ -309,8 +373,8 @@ const pet = {
     if (!d.dragging) {
       if (Math.hypot(e.clientX - d.sx, e.clientY - d.sy) < this.DRAG_THRESHOLD) return;
       d.dragging = true;
-      this.anim = this.DRAG;
-      this.switchTo(this.DRAG, true);
+      this.anim = this.def.DRAG;
+      this.switchTo(this.def.DRAG, true);
     }
     if (this.root) {
       const halfW = this.size / 2, halfH = this.size * 9 / 16 / 2;
@@ -337,15 +401,15 @@ const pet = {
         ry: (e.clientY - d.offY) / window.innerHeight,
       };
       this.applyFootAlign(false);
-      this.anim = this.IDLE;
-      this.switchTo(this.IDLE, true);
+      this.anim = this.def.IDLE;
+      this.switchTo(this.def.IDLE, true);
     }
   },
 
   pClick() {
     if (this.drag.active || this.drag.dragging || this.justDragged) return;
     this.stopMove();
-    this.anim = this.pick(this.CLICKS);
+    this.anim = this.pick(this.def.CLICKS);
     this.switchTo(this.anim, true);
   },
 

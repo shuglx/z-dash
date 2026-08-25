@@ -3,7 +3,7 @@ window.SEED = {
   config: {
     version: 1,
     theme: "dark",
-    pet: true
+    pet: "off"
   },
   todos: {
     version: 1,

@@ -254,7 +254,7 @@ npx electron-builder --linux deb --arm64
 | 字段 | 说明 | 默认 |
 |---|---|---|
 | `theme` | `dark` / `light` 主题 | `dark` |
-| `pet` | 桌宠开关 | `true` |
+| `pet` | 桌宠选择：宠物 id 或 `off`（旧版布尔值自动转 `off`） | `off` |
 | `xpSince` | 声望系统起算锚点（该日期前的归档不计 XP） | 首次启动自动写入当天 |
 | `backupKeep` | 自动备份保留个数（data_backup/ 目录，已 gitignore） | `7` |
 
@@ -264,13 +264,18 @@ npx electron-builder --linux deb --arm64
 
 ## 🐾 桌宠
 
-右下角常驻透明动画桌宠（移植自开源项目 [dsh-pet](https://github.com/PC2005-cloud/dsh-pet)，MIT 协议，原为 DeepSeek Harness 插件，此处移植为原生 JS）：
+右下角常驻透明动画桌宠（移植自开源项目 [dsh-pet](https://github.com/PC2005-cloud/dsh-pet)，MIT 协议，原为 DeepSeek Harness 插件，此处移植为原生 JS），支持多宠物切换：
 
-- 透明 webm 动画（`assets/pet/`）：待机呼吸、写代码、小提琴、三支舞、四季动作……新增动作只需把素材放进 `assets/pet/` 并在 `assets/js/pet.js` 的 `ACTS` / `CLICKS` 等池中登记动画名即可
+- 内置宠物：**鲸鱼娘**（deepseek-doll）、**小玥儿**（yueyue）；露西（cyberpunk-lucy）制作中
+- 侧边栏「桌宠」按钮 / 桌面版托盘菜单「桌宠选择」切换或关闭，状态持久化到 `config.json` 的 `pet` 字段（宠物 id 或 `off`），运行中热切换并保持位置
 - 永不停止的动画链：每段播完按概率选下一个（30% 待机 / 10% 转向 / 40% 动作 / 20% 漫游移动）
-- 点击有随机回应（开心 / 害羞 / 傲娇 / 元气挥手 / 挠痒）；按住拖动可放到任意位置
-- 双缓冲 video 交叉淡入，切换零空白帧；支持 `prefers-reduced-motion`
-- 侧边栏 / 移动端顶栏「桌宠」按钮开关，状态持久化到 `config.json`（默认开）
+- 点击有随机回应；按住拖动可放到任意位置；双缓冲 video 交叉淡入零空白帧
+
+**接入新桌宠**（资源放 `assets/pet/<id>/`，透明 webm，640×360 画布）：
+
+1. `assets/js/pet.js` 的 `PETS` 注册表加一项：`id`、`name`、`IDLE` / `TURN` / `ACTS` / `CLICKS` / `DRAG` / `MOVES` 动画名（与文件名一致，不含扩展名）
+2. `build/main.js` 的 `PETS` 清单加一行 `{ id, label }`（托盘菜单用）
+3. 若资源未完成暂不可选，注册表里保留 `ready: false` 即可（界面置灰显示"制作中…"，完成后删掉该字段）
 
 ---
 
@@ -289,7 +294,7 @@ z-dash/
 ├── assets/
 │   ├── css/style.css        # 主题变量 + 全部样式
 │   ├── fonts/               # 更纱黑体 Sarasa Fixed SC（本地打包，中英文 1:2 等宽）
-│   ├── pet/                 # 桌宠透明动画（webm，可随时增减）
+│   ├── pet/                 # 桌宠透明动画（webm, 按宠物 id 分子目录）
 │   └── js/
 │       ├── seed.js          # 种子只读数据
 │       ├── store.js         # 数据层（GET/PUT /api/<key>）
