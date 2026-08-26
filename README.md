@@ -266,7 +266,7 @@ npx electron-builder --linux deb --arm64
 
 右下角常驻透明动画桌宠（移植自开源项目 [dsh-pet](https://github.com/PC2005-cloud/dsh-pet)，MIT 协议，原为 DeepSeek Harness 插件，此处移植为原生 JS），支持多宠物切换：
 
-- 内置宠物：**鲸鱼娘**（deepseek-doll）、**小玥儿**（yueyue）；露西（cyberpunk-lucy）制作中
+- 内置宠物：**露西**（cyberpunk-lucy）、**小玥儿**（yueyue）、**鲸鱼娘**（deepseek-doll）
 - 侧边栏「桌宠」按钮 / 桌面版托盘菜单「桌宠选择」切换或关闭，状态持久化到 `config.json` 的 `pet` 字段（宠物 id 或 `off`），运行中热切换并保持位置
 - 永不停止的动画链：每段播完按概率选下一个（30% 待机 / 10% 转向 / 40% 动作 / 20% 漫游移动）
 - 点击有随机回应；按住拖动可放到任意位置；双缓冲 video 交叉淡入零空白帧

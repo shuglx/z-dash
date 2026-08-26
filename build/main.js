@@ -24,8 +24,9 @@ let uiState = { theme: 'dark', pet: 'off' };   // 渲染进程同步来的主题
 
 /* 可选桌宠清单（与 assets/js/pet.js 的 PETS 注册表保持一致; 未完成的不列出） */
 const PETS = [
-  { id: 'deepseek-doll', label: '鲸鱼娘' },
+  { id: 'cyberpunk-lucy', label: '露西' },
   { id: 'yueyue', label: '小玥儿' },
+  { id: 'deepseek-doll', label: '鲸鱼娘' },
 ];
 
 /* ---------- 单实例: 重复启动时唤起已有窗口 ---------- */
