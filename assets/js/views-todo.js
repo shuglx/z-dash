@@ -84,6 +84,9 @@ const todoView = {
     const pri = { P0: 'hi', P1: 'mid', P2: 'low' }[t.priority] || 'low';
     const pcls = { P0: 'p0', P1: 'p1', P2: 'p2' }[t.priority] || 'p2';
     const m = this.moves[t.status] || {};
+    // 逾期: 有截止日期且今天已超过(不含当日), 且尚未完成; 今日截止仍沿用 due 样式
+    const overdue = t.dueDate && t.status !== 'done' && t.dueDate < ui.today();
+    const dueToday = t.dueDate && t.status !== 'done' && t.dueDate === ui.today();
     return `
       <div class="task ${t.status} ${pcls}" draggable="true" data-id="${t.id}">
         <div class="t-row">
@@ -93,7 +96,7 @@ const todoView = {
         ${t.desc ? `<div class="desc">${this.linkify(t.desc)}</div>` : ''}
         <div class="meta">
           <span class="pri ${pri}">${ui.esc(t.priority || 'P2')}</span>
-          ${t.dueDate && t.status !== 'done' && t.dueDate <= ui.today() ? `<span class="date due" title="已到期/今日截止">${ui.fmtMD(t.dueDate)}</span>` : t.dueDate ? `<span class="date">${ui.fmtMD(t.dueDate)}</span>` : ''}
+          ${t.dueDate ? `<span class="date ${overdue ? 'overdue' : (dueToday ? 'due' : '')}" ${overdue ? 'title="已逾期"' : (dueToday ? 'title="今日截止"' : '')}>${ui.fmtMD(t.dueDate)}${overdue ? `<span class="ov"><svg class="ov-i" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><path d="M8 2 14.7 13.6H1.3z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6.3v3.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="11.7" r=".85" fill="currentColor"/></svg>逾期</span>` : ''}</span>` : ''}
           ${t.project ? `<span class="proj">${ui.esc(t.project)}</span>` : ''}
           <span class="ops">
             ${m.back ? `<span class="mv op" data-mv="${m.back}" title="移到 ${m.back}">←</span>` : ''}
