@@ -2,7 +2,8 @@
    Z-DASH 周报管理 — 年度周块网格 + 周报填写弹层
    - 按年展示全部 ISO 周（每周一个长方块，6 列网格，箭头切年）
    - 点击周块弹层填写周报（Markdown），COMMIT 持久化到 data/weekly.json
-   - 弹层右上角 IMPORT TASK：本周自待办导入 / 往周自历史归档导入，
+   - 弹层右上角 IMPORT TASK：完成类（待办 done / 历史归档）一律按完成时间
+     doneAt 是否落在该周区间计入；本周额外全量列出未完成任务；
      直接填入输入框不下载 .md；已有内容时不生效；未来周禁点
    ============================================================ */
 const weeklyView = {
@@ -126,11 +127,9 @@ const weeklyView = {
       if (ta.value.trim()) { ui.toast('已有内容，IMPORT 不生效（清空后可导入）', 'warn'); return; }
       const from = this.dstr(mon), to = this.dstr(sun);
       ta.value = this.buildWeekMD(year, week, from, to);
-      if (isNow) ui.toast('TASKS IMPORTED →');
-      else {
-        const n = this.archiveOfWeek(from, to).length;
-        ui.toast(n ? `ARCHIVE IMPORTED · ${n} 条` : '该周归档无记录');
-      }
+      const n = this.doneOfWeek(from, to).length;
+      if (isNow) ui.toast(n ? `TASKS IMPORTED → ${n} 条完成记录` : 'TASKS IMPORTED →');
+      else ui.toast(n ? `IMPORTED · ${n} 条（DONE + 归档）` : '该周无完成记录');
     };
     ui._box.querySelector('[data-ok]').onclick = async () => {
       const v = ta.value;
@@ -156,35 +155,20 @@ const weeklyView = {
     setTimeout(() => ta.focus(), 0);
   },
 
-  /* 生成某周的周报 Markdown：本周取待办，往周取历史归档（未来周入口已禁用） */
+  /* 生成某周周报 Markdown（统一口径：完成类任务看 doneAt 是否落在该周 [from,to] 内）
+     本周：待办 TODO/PROGRESS 未完成全量 + 该周完成记录；
+     往周：仅该周完成记录——待办 done 与历史归档都按完成时间计入 */
   buildWeekMD(year, week, from, to) {
     const cur = this.isoNow();
-    return (year === cur.y && week === cur.w)
-      ? this.buildTodoMD(year, week, from, to)
-      : this.buildArchiveMD(year, week, from, to);
-  },
-
-  /* 归档中完成日期（doneAt）落在该周内的记录 */
-  archiveOfWeek(from, to) {
-    return store.data.archive.items.filter(it => {
-      const d = (it.doneAt || '').slice(0, 10);
-      return d >= from && d <= to;
-    });
-  },
-
-  /* 从待办生成某周的周报 Markdown（自待办页 WEEK REPORT 迁移，参数化为任意周）
-     规则与原实现一致：未启动/进行中全量 + 已完成（完成时间在该周内） */
-  buildTodoMD(year, week, from, to) {
-    const items = store.data.todos.items;
-    const inWeek = t => {
-      if (t.status !== 'done') return true;
-      const d = (t.doneAt || '').slice(0, 10);
-      return d >= from && d <= to;
-    };
-    const tasks = items.filter(inWeek);
+    const isNow = year === cur.y && week === cur.w;
+    const done = this.doneOfWeek(from, to);                       // 完成时间在该周的记录（DONE 待办 + 归档）
+    const active = isNow
+      ? store.data.todos.items.filter(t => t.status !== 'done')   // 本周：未完成任务全量
+      : [];
     const esc = s => String(s || '').replace(/[|*]/g, m => '\\' + m).replace(/\n/g, ' ').trim();
 
-    const renderGroup = list => {
+    /* 按项目分组渲染列表（未完成 [ ] / 完成 [x]，元数据内联） */
+    const renderList = list => {
       const groups = new Map();
       list.forEach(t => {
         const k = (t.project || '').trim();
@@ -199,12 +183,13 @@ const weeklyView = {
         const lines = arr.map(t => {
           const { tag, title } = todoView.parseTag(t.title);
           const full = tag ? `[${tag}] ${title}` : title;
-          const p = t.priority || 'P2';
-          const due = t.dueDate ? `截止:${t.dueDate}` : '';
-          const created = t.createdAt ? `创建:${String(t.createdAt).slice(0, 10)}` : '';
-          const done = t.doneAt ? `完成:${String(t.doneAt).slice(0, 10)}` : '';
-          const meta = [created, done, due, t.project ? '项目:' + esc(t.project) : ''].filter(Boolean).join(' · ');
-          let line = `- [${t.status === 'done' ? 'x' : ' '}] **${esc(full)}** — \`${p}\``;
+          const meta = [
+            t.createdAt ? '创建:' + String(t.createdAt).slice(0, 10) : '',
+            t.doneAt ? '完成:' + String(t.doneAt).slice(0, 10) : '',
+            t.dueDate ? '截止:' + t.dueDate : '',
+            t.project ? '项目:' + esc(t.project) : ''
+          ].filter(Boolean).join(' · ');
+          let line = `- [${t.status === 'done' ? 'x' : ' '}] **${esc(full)}** — \`${t.priority || 'P2'}\``;
           if (meta) line += `\n  - ${meta}`;
           if (t.desc) line += `\n  - 详情: ${esc(t.desc)}`;
           return line;
@@ -212,50 +197,36 @@ const weeklyView = {
         return `### ${head}（${arr.length}）\n\n${lines}`;
       }).join('\n\n');
     };
+    const sec = (head, list) =>
+      `## ${head}（${list.length}）\n\n${renderList(list) || '_（无记录）_'}`;
 
-    const cnt = s => tasks.filter(t => t.status === s).length;
-    return `# 周报 · ${year} 第${String(week).padStart(2, '0')}周（${from} ~ ${to}）\n\n` +
-      `> 生成时间：${ui.nowISO().slice(0, 16)}\n\n` +
-      `## 未启动 · TODO（${cnt('todo')}）\n\n${renderGroup(tasks.filter(t => t.status === 'todo'))}\n\n` +
-      `## 进行中 · PROGRESS（${cnt('doing')}）\n\n${renderGroup(tasks.filter(t => t.status === 'doing'))}\n\n` +
-      `## 已完成 · DONE（该周）（${cnt('done')}）\n\n${renderGroup(tasks.filter(t => t.status === 'done'))}\n`;
+    const w = String(week).padStart(2, '0');
+    const body = isNow
+      ? [
+          sec('未启动 · TODO', active.filter(t => t.status === 'todo')),
+          sec('进行中 · PROGRESS', active.filter(t => t.status === 'doing')),
+          sec('已完成 · DONE（该周，含归档）', done)
+        ].join('\n\n')
+      : sec('已完成 · DONE / ARCHIVE（该周）', done);
+    return `# 周报 · ${year} 第${w}周（${from} ~ ${to}）\n\n` +
+      `> 生成时间：${ui.nowISO().slice(0, 16)}` + (isNow ? '' : ' · 来源：完成时间落点（待办 DONE + 归档）') + '\n\n' +
+      body + '\n';
   },
 
-  /* 从历史归档生成往周的周报 Markdown（doneAt 落在该周内的归档记录，按项目分组） */
-  buildArchiveMD(year, week, from, to) {
-    const items = this.archiveOfWeek(from, to)
-      .sort((a, b) => String(a.doneAt || '').localeCompare(String(b.doneAt || '')));
-    const esc = s => String(s || '').replace(/[|*]/g, m => '\\' + m).replace(/\n/g, ' ').trim();
-
-    const groups = new Map();
-    items.forEach(it => {
-      const k = (it.project || '').trim();
-      if (!groups.has(k)) groups.set(k, []);
-      groups.get(k).push(it);
+  /* 完成时间（doneAt）落在该周 [from,to] 的全部记录：历史归档 + 待办中 done，
+     统一按 doneAt 排序，兼顾"本周已归档"与"往周未归档 done"两类遗漏 */
+  doneOfWeek(from, to) {
+    const day = it => String(it.doneAt || '').slice(0, 10);
+    const arr = [];
+    store.data.archive.items.forEach(it => {
+      const d = day(it);
+      if (d >= from && d <= to) arr.push({ ...it, status: 'done' });
     });
-    const keys = [...groups.keys()].filter(k => k !== '').sort((a, b) => a.localeCompare(b));
-    const sorted = keys.concat(groups.has('') ? [''] : []);
-
-    const body = sorted.map(k => {
-      const arr = groups.get(k);
-      const head = k === '' ? '**未分组**' : `**${esc(k)}**`;
-      const lines = arr.map(it => {
-        const meta = [
-          it.priority ? '优先级:' + it.priority : '',
-          it.createdAt ? '创建:' + String(it.createdAt).slice(0, 10) : '',
-          it.doneAt ? '完成:' + String(it.doneAt).slice(0, 10) : ''
-        ].filter(Boolean).join(' · ');
-        let line = `- [x] **${esc(it.title)}**`;
-        if (meta) line += `\n  - ${meta}`;
-        if (it.desc) line += `\n  - 详情: ${esc(it.desc)}`;
-        return line;
-      }).join('\n');
-      return `### ${head}（${arr.length}）\n\n${lines}`;
-    }).join('\n\n');
-
-    return `# 周报 · ${year} 第${String(week).padStart(2, '0')}周（${from} ~ ${to}）\n\n` +
-      `> 生成时间：${ui.nowISO().slice(0, 16)} · 来源：历史归档\n\n` +
-      `## 已完成 · ARCHIVE（${items.length}）\n\n` +
-      (body || '_（该周归档无记录）_') + '\n';
+    store.data.todos.items.forEach(it => {
+      if (it.status !== 'done') return;
+      const d = day(it);
+      if (d >= from && d <= to) arr.push({ ...it });
+    });
+    return arr.sort((a, b) => day(a).localeCompare(day(b)));
   }
 };
