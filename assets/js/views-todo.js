@@ -204,8 +204,11 @@ const todoView = {
 
   editModal(t) {
     const isNew = !t;
-    // 已有项目去重列表（datalist：可下拉选已有, 也可自由输入新项目）
-    const projects = [...new Set(store.data.todos.items.map(x => (x.project || '').trim()).filter(Boolean))].sort();
+    // 已有项目去重列表（datalist：待办 + 历史归档中出现过的项目均可选, 也可自由输入新项目）
+    const projects = [...new Set(
+      [...store.data.todos.items, ...store.data.archive.items]
+        .map(x => (x.project || '').trim()).filter(Boolean)
+    )].sort();
     ui.formModal({
       title: isNew ? 'NEW TASK' : 'EDIT TASK',
       fields: [
