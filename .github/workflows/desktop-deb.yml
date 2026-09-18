@@ -12,9 +12,9 @@ jobs:
   build-linux-deb-arm64:
     runs-on: ubuntu-latest   # x64 runner 交叉打包 arm64; 公共仓库可改用 ubuntu-24.04-arm 原生构建
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 20
 
@@ -30,7 +30,7 @@ jobs:
         run: npx electron-builder --linux deb --arm64 --publish never
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: z-dash-deb-arm64
           path: build/stage/dist/*.deb
@@ -39,9 +39,9 @@ jobs:
   build-windows-portable-x64:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 20
 
@@ -63,7 +63,7 @@ jobs:
         run: Get-ChildItem 'Z-DASH *.exe' | Rename-Item -NewName { $_.Name -replace '^Z-DASH ([\d.]+)\.exe$', 'z-dash_$1_x64_portable.exe' }
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: z-dash-win-x64-portable
           path: build/stage/dist/*.exe
@@ -76,12 +76,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           path: dist
           merge-multiple: true
 
       - name: Attach to Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: dist/*
