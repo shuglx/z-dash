@@ -51,15 +51,15 @@ const archiveView = {
   rangeFrom() {
     const s = this.state;
     if (s.customFrom) return s.customFrom;
-    if (s.range === '1w') { const d = new Date(); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d.toISOString().slice(0, 10); }
-    if (s.range === '1m') { const d = new Date(); d.setMonth(d.getMonth() - 1); return d.toISOString().slice(0, 10); }
-    if (s.range === '3m') { const d = new Date(); d.setMonth(d.getMonth() - 3); return d.toISOString().slice(0, 10); }
+    if (s.range === '1w') { const d = new Date(); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return ui.dateStr(d); }
+    if (s.range === '1m') { const d = new Date(); d.setMonth(d.getMonth() - 1); return ui.dateStr(d); }
+    if (s.range === '3m') { const d = new Date(); d.setMonth(d.getMonth() - 3); return ui.dateStr(d); }
     return null;
   },
   rangeTo() {
     const s = this.state;
     if (s.customTo) return s.customTo;
-    if (s.range === '1w') return new Date().toISOString().slice(0, 10); // 本周 → 今天
+    if (s.range === '1w') return ui.today(); // 本周 → 今天
     return null;
   },
 

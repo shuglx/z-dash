@@ -13,11 +13,16 @@ const ui = {
     if (!d) return '';
     return String(d).slice(5, 10);
   },
+  dateStr(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  },
   today() {
-    return new Date().toISOString().slice(0, 10);
+    return this.dateStr(new Date());
   },
   nowISO() {
-    return new Date().toISOString();
+    const d = new Date(), p = n => String(n).padStart(2, '0');
+    return this.dateStr(d) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()) +
+      '.' + String(d.getMilliseconds()).padStart(3, '0');
   },
   host(url) {
     try { return new URL(url).host; } catch (e) { return url; }
