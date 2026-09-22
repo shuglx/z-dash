@@ -49,6 +49,10 @@
 | 📊 数据统计 | `#/stats` | 热力图 / 图表 / 声望面板（默认页） |
 | 🧰 工具抽屉 | `#/tools` | 时间戳 / JSON / 正则 / 加解密 |
 
+<p align="center">
+<img src="build/z-dash-preview.png" width="800" alt="Z-DASH 界面预览"/>
+</p>
+
 ---
 
 <a id="features"></a>
