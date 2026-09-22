@@ -22,7 +22,7 @@
 [![Issues](https://img.shields.io/github/issues/shuglx/z-dash?style=for-the-badge&logo=github)](https://github.com/shuglx/z-dash/issues)
 [![Last Commit](https://img.shields.io/github/last-commit/shuglx/z-dash?style=for-the-badge&logo=git&logoColor=white)](https://github.com/shuglx/z-dash/commits)
 
-[简介](#intro) · [功能](#features) · [声望系统](#xp) · [快速开始](#quickstart) · [桌面版](#desktop) · [桌宠](#pet) · [License](#license)
+[简介](#intro) · [界面截图](#screenshot) · [功能](#features) · [声望系统](#xp) · [快速开始](#quickstart) · [桌面版](#desktop) · [桌宠](#pet) · [License](#license)
 
 </div>
 
@@ -48,6 +48,12 @@
 | 🔗 常用链接 | `#/links` | 分组管理，支持任意协议 |
 | 📊 数据统计 | `#/stats` | 热力图 / 图表 / 声望面板（默认页） |
 | 🧰 工具抽屉 | `#/tools` | 时间戳 / JSON / 正则 / 加解密 |
+
+---
+
+<a id="screenshot"></a>
+
+## 📸 界面截图
 
 <p align="center">
 <img src="build/z-dash-preview.png" width="800" alt="Z-DASH 界面预览"/>
