@@ -6,3 +6,6 @@ extra/
 build/stage/
 build/.ico-parts/
 build/package-lock.json
+
+# 桌宠移植
+pet-porting-kit/
