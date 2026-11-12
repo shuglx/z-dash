@@ -1,0 +1,241 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Z-DASH 项目总览",
+    "locale": "zh-CN",
+    "output": ".archify/architecture-z-dash-intro-20261112-150044/z-dash-intro.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/shuglx/z-dash.git",
+      "provider": "github",
+      "revision": "53e490b26fa4437f58cbc4cfe4545667c8f46c06"
+    }
+  },
+  "components": [
+    {
+      "id": "launch",
+      "type": "backend",
+      "label": "启动脚本 bin/start.*",
+      "sublabel": "node server.js :8000",
+      "pos": [40, 50],
+      "size": [165, 66],
+      "sources": [
+        { "path": "bin/start.sh", "line": 20, "end_line": 34 },
+        { "path": "README.md", "line": 191, "end_line": 198 }
+      ]
+    },
+    {
+      "id": "electron",
+      "type": "backend",
+      "label": "Electron 桌面壳",
+      "sublabel": "build/main.js · 8390+",
+      "pos": [790, 50],
+      "size": [165, 66],
+      "sources": [
+        { "path": "build/main.js", "line": 14, "end_line": 17 },
+        { "path": "build/main.js", "line": 78, "end_line": 90 },
+        { "path": "build/main.js", "line": 222, "end_line": 231 }
+      ]
+    },
+    {
+      "id": "ci",
+      "type": "cloud",
+      "label": "GitHub Actions",
+      "sublabel": "tag v* → deb / exe",
+      "pos": [1040, 50],
+      "size": [165, 66],
+      "sources": [
+        { "path": ".github/workflows/desktop-deb.yml", "line": 3, "end_line": 9 },
+        { "path": ".github/workflows/desktop-deb.yml", "line": 72, "end_line": 87 }
+      ]
+    },
+    {
+      "id": "user",
+      "type": "external",
+      "label": "用户",
+      "sublabel": "PC 侧边栏 / 移动端 Tab",
+      "pos": [40, 220],
+      "size": [165, 66],
+      "sources": [
+        { "path": "index.html", "line": 36, "end_line": 46 },
+        { "path": "index.html", "line": 83, "end_line": 91 }
+      ]
+    },
+    {
+      "id": "spa",
+      "type": "frontend",
+      "label": "index.html 单页应用",
+      "sublabel": "app.js hash 路由",
+      "pos": [290, 220],
+      "size": [165, 66],
+      "sources": [
+        { "path": "index.html", "line": 73, "end_line": 109 },
+        { "path": "assets/js/app.js", "line": 4, "end_line": 18 }
+      ]
+    },
+    {
+      "id": "store",
+      "type": "frontend",
+      "label": "store.js 数据层",
+      "sublabel": "LIVE 实时 / SEED 只读",
+      "pos": [540, 220],
+      "size": [165, 66],
+      "sources": [
+        { "path": "assets/js/store.js", "line": 8, "end_line": 49 }
+      ]
+    },
+    {
+      "id": "server",
+      "type": "backend",
+      "label": "server.js",
+      "sublabel": "零依赖 · 静态服务 + API",
+      "pos": [790, 220],
+      "size": [165, 66],
+      "sources": [
+        { "path": "server.js", "line": 221, "end_line": 224 },
+        { "path": "server.js", "line": 252, "end_line": 278 },
+        { "path": "server.js", "line": 283, "end_line": 289 }
+      ]
+    },
+    {
+      "id": "data",
+      "type": "database",
+      "label": "data/*.json",
+      "sublabel": "todos / archive / weekly / links / config",
+      "pos": [1040, 220],
+      "size": [165, 66],
+      "sources": [
+        { "path": "server.js", "line": 20, "end_line": 22 },
+        { "path": "server.js", "line": 260, "end_line": 272 },
+        { "path": "data/config.json", "line": 1, "end_line": 6 }
+      ]
+    },
+    {
+      "id": "pet",
+      "type": "frontend",
+      "label": "桌宠 pet.js",
+      "sublabel": "assets/pet/*.webm",
+      "pos": [40, 380],
+      "size": [165, 66],
+      "sources": [
+        { "path": "assets/js/pet.js", "line": 1, "end_line": 10 },
+        { "path": "assets/js/app.js", "line": 62, "end_line": 67 }
+      ]
+    },
+    {
+      "id": "views",
+      "type": "frontend",
+      "label": "6 大功能视图",
+      "sublabel": "6 个 hash 页面",
+      "pos": [290, 380],
+      "size": [165, 66],
+      "sources": [
+        { "path": "index.html", "line": 74, "end_line": 79 },
+        { "path": "index.html", "line": 101, "end_line": 106 }
+      ]
+    },
+    {
+      "id": "seed",
+      "type": "frontend",
+      "label": "SEED 种子数据",
+      "sublabel": "seed.js · 只读",
+      "pos": [540, 380],
+      "size": [165, 66],
+      "sources": [
+        { "path": "assets/js/seed.js", "line": 1, "end_line": 8 },
+        { "path": "assets/js/store.js", "line": 33, "end_line": 39 }
+      ]
+    },
+    {
+      "id": "sys",
+      "type": "backend",
+      "label": "GET /api/sys",
+      "sublabel": "CPU / 内存 / 磁盘",
+      "pos": [790, 380],
+      "size": [165, 66],
+      "sources": [
+        { "path": "server.js", "line": 117, "end_line": 131 },
+        { "path": "server.js", "line": 225, "end_line": 249 },
+        { "path": "assets/js/app.js", "line": 252, "end_line": 263 }
+      ]
+    },
+    {
+      "id": "backup",
+      "type": "database",
+      "label": "自动备份",
+      "sublabel": "data_backup/*.tar.gz",
+      "pos": [1040, 380],
+      "size": [165, 66],
+      "sources": [
+        { "path": "server.js", "line": 133, "end_line": 138 },
+        { "path": "server.js", "line": 176, "end_line": 204 },
+        { "path": "server.js", "line": 206, "end_line": 212 }
+      ]
+    },
+    {
+      "id": "xp",
+      "type": "frontend",
+      "label": "xp.js 街区声望",
+      "sublabel": "由 archive 派生 XP / streak",
+      "pos": [290, 520],
+      "size": [165, 66],
+      "sources": [
+        { "path": "assets/js/xp.js", "line": 1, "end_line": 10 },
+        { "path": "assets/js/xp.js", "line": 23, "end_line": 47 }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "本地文件 · 数据归自己所有",
+      "wraps": ["data", "backup"]
+    }
+  ],
+  "connections": [
+    { "id": "launch-user", "from": "launch", "to": "user", "label": "打开浏览器" },
+    { "id": "launch-server", "from": "launch", "to": "server", "label": "启动 :8000" },
+    { "id": "electron-server", "from": "electron", "to": "server", "label": "fork + ZD_DATA_ROOT" },
+    { "id": "ci-electron", "from": "ci", "to": "electron", "label": "tag v*", "variant": "dashed" },
+    { "id": "user-spa", "from": "user", "to": "spa", "label": "操作界面", "variant": "emphasis" },
+    { "id": "spa-store", "from": "spa", "to": "store", "label": "读写数据", "variant": "emphasis" },
+    { "id": "store-server", "from": "store", "to": "server", "label": "GET/PUT", "variant": "emphasis" },
+    { "id": "server-data", "from": "server", "to": "data", "label": "原子写盘", "variant": "emphasis" },
+    { "id": "spa-views", "from": "spa", "to": "views", "label": "render() 切页" },
+    { "id": "spa-pet", "from": "spa", "to": "pet", "label": "挂载桌宠" },
+    { "id": "store-seed", "from": "store", "to": "seed", "label": "降级只读", "variant": "dashed" },
+    { "id": "server-sys", "from": "server", "to": "sys", "label": "/api/sys" },
+    { "id": "server-backup", "from": "server", "to": "backup", "label": "每日 00:01 打包", "variant": "dashed" },
+    { "id": "views-xp", "from": "views", "to": "xp", "label": "归档结算" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "六大功能视图",
+      "items": [
+        "待办看板 · 历史归档 · 周报墙 · 常用链接 · 数据统计 · 工具抽屉",
+        "hash 路由 #/stats 为默认页，数字 1-9 / Q / A / E 快捷键",
+        "统计页含完成热力图、趋势图与 STREET CRED 声望面板"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "数据与安全",
+      "items": [
+        "LIVE：PUT /api/<key> 先写 .tmp 再 rename 原子替换，改动即时落盘",
+        "SEED：file:// 直开或后端不可达时展示 seed.js 内置数据，只读",
+        "每天 00:01 把 data/*.json 打成 tar.gz，保留数由 config.backupKeep 控制（缺省 7）"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "交付形态",
+      "items": [
+        "零依赖零框架零 CDN：原生 HTML/CSS/JS + Node 内置模块，Node ≥ 18",
+        "Electron 桌面壳以 utilityProcess 复用同一份 server.js，ZD_DATA_ROOT 隔离数据",
+        "tag v* 触发 CI 产出 arm64 deb 与 x64 portable exe"
+      ]
+    }
+  ]
+}
